@@ -1,0 +1,295 @@
+---
+title: "Data Report: How the Educational Background effects Knowledge and Opinion of Hate Speech"
+output: 
+  html_document:
+    code_folding: show
+    theme:
+      bg: "#202123"
+      fg: "#B8BCC2"
+      primary: "#EA80FC"
+      secondary: "#00DAC6"
+      base_font:
+        google: Rethink Sans
+      heading_font:
+        google: Jost
+---
+
+```{r setup, include=FALSE}
+if (requireNamespace("thematic")) 
+  thematic::thematic_rmd(font = "auto")
+```
+
+```{r, include=FALSE}
+# Load Packages
+library("tidyverse")
+# library("janitor")
+# library("magrittr")
+# library("haven")
+# library("reshape2")
+# library("margins")
+# library("gdata")
+# library("scales")
+# library("ggthemes")
+# library("labelled")
+# library("sjlabelled")
+# library("stargazer")
+# library("broom")
+# library("xtable")
+# library("grid")
+# library("RColorBrewer")
+# library("readxl")
+# # library("writexl") produces fatal error
+# library("AER")
+# library("lme4")
+# library("arm")
+# library("data.table")
+# library("lubridate")
+# library("summarytools")
+# library("viridis")
+# library("cregg")
+# library("gridExtra")
+# library("ggcorrplot")
+# library("broom.mixed")
+# library("broom.helpers")
+# library("cowplot")
+# library("infer")
+# library("estimatr")
+# library("emmeans")
+# library("corrr")
+# library("modelsummary")
+# library("texreg")
+library("naniar")
+# library("rmarkdown")
+library("ggplot2")
+```
+
+
+# Preprocessing
+
+Steps
+- load data
+- select variables of interest, drop the rest
+- check missingness in total, create sub dataframe without missing variables (?)
+```{r}
+# load preprocessed data
+# load("data/data_survey_prepd_respondent.RData")
+data_complete <- read_csv("/Users/Jo/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_complete.csv")
+```
+
+```{r}
+# print column names
+# data_complete %>% colnames() %>% print()
+```
+
+
+
+Explanation what variables I keep (drop Vignette stuff and items that do not have any impact on my analysis) - for now. Time spent etc. could maybe be an indicator which observations are more authentic and should be considered in a later stage (treatment could be similar like in the original study.open: decide if I exclude people from my analysis with a certain time spent on the survey or some information missing etc.
+
+```{r}
+# drop variables that will not be taken into account in the analysis (argumentation see PAP)
+data_selected <- data_complete %>% 
+  dplyr::select(!c(1:22, 86:89, 92:94, 97:261, 290:358))
+```
+
+A glimpse on the variables that are left for now:
+
+```{r}
+glimpse(data_selected)
+```
+
+Prepocessing for Outcome variables - replacing "0" with "NA" in open text answers
+
+```{r}
+data_selected <- data_selected %>% 
+  mutate(open_hatedefinition = na_if(open_hatedefinition, ""),
+         open_allow = na_if(open_allow, ""))
+```
+
+
+
+For now we are left with data on Basic sociodemographics, Political preferences and behavior, Speech traits, Online Behavior, and Speech Governance Preferences, as well as the outcome variables (two free text items on personal definition of hate speech and the opinion what should not be allowed to say on social media).
+
+In this report we look at the outcome variables as well as potential covariates for the study:
+
+Basic sociodemographics 
+* gender
+* birthyear
+...
+
+Political preferences and behavior
+*
+Speech traits
+*
+Online Behavior
+*
+Speech Governance Preferences
+*
+
+# Ideen Visualisierung für Covariate Setup - First and rough Explanatory Data Analysis
+
+- variables of interest for first exploration: Selection and first exploration of important variables for the analysis
+
+- Art dieser Variablen und Missingness Stats
+
+- Verteilung edu categories in different countries
+
+- edu cat vs. political interest (polinterest), vs. leftright, vs. empathy, who should take action etc. (plot edu cats with every other interesting variable?!)
+
+```{r}
+
+```
+
+
+# Kind and Variation of Outcome Variables
+
+Two open text items from the survey serve as outcome variables (further explanation on causal considerations see PAP):
+
+1.	Definition of hate speech = basis of knowledge people have about hate speech, classified (open_hatedefinition)
+
+„People have different ideas about what constitutes "hate speech." What about you - how would you personally define hate speech?“
+
+2.	What should be said or forbidden to say on the internet = opinion what people think should be regulated (length, sentiment, …?) (open_allow)
+
+„And, in your own words, what do you think:
+What - if anything - should not be allowed to say on social media?“
+
+### Look at some examples
+
+```{r}
+data_selected %>% 
+  filter(Q_Language == "EN" | Q_Language == "DE") %>% 
+  select(open_hatedefinition, open_allow) %>% 
+  drop_na() %>% 
+  head(15)
+```
+
+
+### Missingness
+
+```{r}
+# missingness
+data_selected %>% count(open_hatedefinition == "")
+data_selected %>% count(open_allow == "")
+```
+We have around 15.000 observations where people have answered the open text questions (out of around 50.000, so roughly a third).
+
+```{r}
+# visualizing missingness
+
+# select three main variables
+var_selected <- data_selected %>% 
+  dplyr::select(open_hatedefinition, open_allow, educ_cat)
+
+# visualize missingness of those three
+vis_miss(var_selected)
+
+# save figure
+
+# missingness distribution in the three groups of education / in all countries (small multiple plot?)
+var_selected %>% filter(educ_cat == "Low") %>% vis_miss()
+
+var_selected %>% filter(educ_cat == "Intermediate") %>% vis_miss()
+
+var_selected %>% filter(educ_cat == "High") %>% vis_miss()
+
+# create a small multiple with all three plots but without the edu_cat variable with them
+```
+
+- Existing answers in the open text variables seem to be roughly equally distributed between different levels of education (38.3% in Low, 32.3% in Intermediate, and 35.3% High)
+
+### Text length
+
+```{r}
+# create variables that show the number of characters used in the open text answers
+data_selected <- data_selected %>% mutate(length_hatedefinition = nchar(open_hatedefinition), length_allow = nchar(open_allow))
+
+# min and max text length
+data_selected$length_hatedefinition %>% max()
+data_selected %>% filter(!length_hatedefinition == 0) %>% dplyr::select(length_hatedefinition) %>% min()
+
+# create table for both variables
+```
+We see an extreme low value for the "shortest answer" - 1. This implies that we have some answers that appear to exist, but in reality, are just too short to be taken into account. Let's check how many there are with less than 10 characters (so probably not more than two words) and have a look at them:
+
+```{r}
+less_than_10 <- data_selected %>% filter(length_hatedefinition <= 10 & length_hatedefinition != 0) 
+
+less_than_10 %>% count()
+less_than_10 %>% dplyr::select(open_hatedefinition)
+
+```
+Ome of them are just NA, but many also include an opinion on the matter - e.g. while "unsure" marks that the person is not able to answer, "foul words" or "abusive" seem to specify something that should not be said. Also answers like "gar nicht", "Não existe" imply that those respondents do not think that something like hate speech even exists, maybe pointing towards a strong support of free speech without any regulation. My take aways for further analysis:
+
+* some hate speech definitions might rather answer the second question, what should not be said. 
+* while these short answers are outliers in a way, they sometimes do contain definitions of hate speech. It will be needed to categorize these answers, flag answers like "." as NA, but also answers like "??" maybe as a category with missing knowledge, "Don't care" as a statement, ...
+
+
+
+```{r}
+
+# Distribution of text length in open_hatedefinition
+length_plot_hatedefinition <- data_selected %>%
+  filter(!open_hatedefinition == "") %>%
+  mutate(text_length = nchar(open_hatedefinition)) %>%
+  ggplot(aes(x = text_length)) +
+  geom_histogram(binwidth = 10, fill = "red", color = "red") +
+  labs(title = "Distribution of Text Length",
+       x = "Text Length",
+       y = "Frequency")
+
+
+# Distribution of text length in open_allow
+
+# Average length of both answers
+```
+
+
+
+Three random examples of answers
+
+```{r}
+
+```
+
+
+First look at distribution across covariates
+
+```{r}
+# plot length of statement vs. educational background
+
+# distributions: number of characters used, existence of answers in countries, existence of answers in edu cat, age groups, gender, ...
+```
+
+
+
+
+## R Markdown
+
+This is an R Markdown document themed with [`{bslib}` package](https://rstudio.github.io/bslib/). `{bslib}` makes it easy to customize the main colors and fonts of a `html_document`, or more generally any website that uses [Bootstrap](https://getbootstrap.com/) for styling. The `theme` parameter in the yaml front-matter of this Rmd document describes a [`bslib::bs_theme()`](https://rstudio.github.io/bslib/reference/bs_theme.html) object, which provides access to 100s of [theming options](https://rstudio.github.io/bslib/articles/bs5-variables.html) (via its `...` argument) in addition to the main options demonstrated here (e.g., `bg`, `fg`, `primary`, etc).
+
+This particular example uses `{bslib}`'s default [Bootstrap version (which, at the time of writing, is Bootstrap 5)](https://rstudio.github.io/bslib/articles/bslib.html#versions). However, if reproducibility is important, it's recommended that you "lock-in" the version by adding `version: 5` to the `theme` definition.
+
+## Themed Plots {.tabset .tabset-pills}
+
+When running this document with [`{thematic}`](https://rstudio.github.io/thematic/) installed, the `thematic::thematic_rmd(font = "auto")` effectively translates `theme` (CSS) settings to new global theming defaults for `{ggplot2}`, `{lattice}`, and `{base}` R graphics:
+
+### ggplot2
+
+```{r}
+library(ggplot2)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() + geom_smooth()
+```
+
+### lattice
+
+```{r}
+lattice::show.settings()
+```
+
+### base
+
+```{r}
+plot(pressure, col = thematic::thematic_get_option("accent"))
+```

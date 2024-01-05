@@ -1,0 +1,67 @@
+---
+title: "Education and Hate Speech Preferences - Pre Analysis Plan"
+author: "Your Name"
+date: "`r format(Sys.Date(), '%d %B, %Y')`" # Date in "01 January, 2024" format
+output:
+  html_document:
+    toc: true               # Enable Table of Contents
+    toc_float:              # Make the TOC floating
+      collapsed: false      # Do not collapse TOC by default
+      smooth_scroll: true   # Smooth scrolling to sections
+    number_sections: true   # Numbered sections
+    theme: readable         # Use a predefined theme for styling (optional)
+    highlight: tango        # Syntax highlighting style (optional)
+bibliography: references.bib
+biblio-style: apa
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Test 
+
+For parenthetical citations: [@estelles2020]
+For in-text citations: @estelles2020 renders as Bovee et al. (2020)
+For only the year: -@estelles2020 should render as (2020)
+
+# Summary
+
+300 words
+
+- main goals of the project
+- scientific question I want to answer
+- how the question will be answered
+
+# Motivation and Background
+
+- Why is this research question interesting
+
+Education shapes political opinion.
+The topic of hate speech gets even bigger nowadays, especially for questions of digital governance, seen that generative AI generates content based on already existent content from the internet
+
+- how does my background align with this topic
+
+training as a teacher, work in the ministry of labor and social affairs on digital governance, so the view of society has always been important for work. 
+
+- what skills/knowledge do I want to get through the project, valuable for my future career?
+
+# Introduction
+
+
+
+## Education Effects on Political Opinion
+
+## Hate Speech Definition and Attitudes
+
+
+
+# Research Question
+
+# Data and Methods
+
+# References
+
+
+

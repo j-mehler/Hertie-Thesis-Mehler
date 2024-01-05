@@ -1,0 +1,57 @@
+---
+title: "Data Report"
+author: "Your Name"
+date: "`r format(Sys.Date(), '%d %B, %Y')`" # Date in "01 January, 2024" format
+output:
+  html_document:
+    toc: true               # Enable Table of Contents
+    toc_float:              # Make the TOC floating
+      collapsed: false      # Do not collapse TOC by default
+      smooth_scroll: true   # Smooth scrolling to sections
+    number_sections: true   # Numbered sections
+    theme: readable         # Use a predefined theme for styling (optional)
+    highlight: tango        # Syntax highlighting style (optional)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# First Part
+
+## Subpart of first
+
+### subpart of subpart of first part
+
+
+
+
+## Test 
+
+For parenthetical citations: [@estelles2020]
+
+For in-text citations: @estelles2020 renders as Bovee et al. (2020)
+For only the year: -@estelles2020 should render as (2020)
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+### References
