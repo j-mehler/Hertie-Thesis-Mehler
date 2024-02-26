@@ -1,0 +1,108 @@
+---
+title: "batches_descriptives"
+author: "Johanna Mehler"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(haven) 
+library(descr) 
+library(table1) 
+library(corrplot) 
+library(ggplot2)
+# library(gtsummary) 
+# library(sjPlot)
+
+
+```
+
+## Read in Data
+
+```{r}
+# read in batches
+batches <- read_csv("/Users/Jo/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/batches.csv")
+```
+
+# Pre-Processing
+
+Create numeric Values (TRUE = 1, FALSE = 0) for all columns and remove the country column for now. Create dataframes for each category content, target etc.
+
+```{r}
+# Convert boolean (logical) columns to numeric
+data_numeric <- batches %>% 
+  select(-ends_with("open"), -Answer.flag_comments, -Input.country) %>% 
+  mutate(across(.cols = everything(), .fns = ~ as.numeric(. == TRUE)))
+
+# take out answers that are flagged for revision
+data_numeric_filtered <- data_numeric %>% filter(Answer.flag.flag == FALSE)
+
+# create subsets for each category
+data_content <- data_numeric %>% select(starts_with("Answer.content")) # 15
+data_other_features <- data_numeric %>% select(starts_with("Answer.other")) # 7
+data_scope <- data_numeric %>% select(starts_with("Answer.scope")) # 2
+data_sender <- data_numeric %>% select(starts_with("Answer.sender")) # 5
+data_target <- data_numeric %>% select(starts_with("Answer.target")) # 18
+```
+
+
+# Explore Distributions
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count <- colSums(data_numeric_filtered == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_df <- data.frame(variable = names(ones_count), count = ones_count) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_df, aes(x = variable, y = count)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Number of 1s per Variable", x = "Variable", y = "Count")
+
+```
+
+
+## Content items
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_content <- colSums(data_content == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_content_df <- data.frame(variable = names(ones_count_content), count = ones_count_content) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_content_df, aes(x = variable, y = count)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Number of 1s per Variable", x = "Variable", y = "Count")
+
+```
+
+## Other Features of Statement
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_other <- colSums(data_other_features == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_data_other <- data.frame(variable = names(ones_count_other), count = ones_count_other) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_data_other, aes(x = variable, y = count)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Number of 1s per Variable", x = "Variable", y = "Count")
+
+```
+
+

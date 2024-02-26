@@ -1,6 +1,6 @@
 ---
-title: "Data Report"
-author: "Your Name"
+title: "Data Report - Educational Attainment and Hate Speech Definition/Attitudes"
+author: "Johanna Mehler"
 date: "`r format(Sys.Date(), '%d %B, %Y')`" # Date in "01 January, 2024" format
 output:
   html_document:
@@ -14,11 +14,536 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-# First Part
+```{r, include=FALSE}
+# Load Packages
+library("tidyverse")
+library("naniar")
+library("ggplot2")
+library("gridExtra")
+library("haven")
+```
 
-## Subpart of first
+# Preprocessing
 
-### subpart of subpart of first part
+## Load data and select relevant survey items
+
+As a first step, we load the data and print the variable names in order to identify the parts of the questionnaire that are relevant for the study.
+
+```{r}
+# load preprocessed data
+load("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_survey_prepd_respondent.RData")
+data_complete <- data_survey_complete_resp
+
+# print column names
+data_complete %>% colnames() %>% print()
+```
+
+Drop (for now):
+
+* 1-22: metadata
+* "vig": vignette experiment and 
+* "t_": time measures (more metadata)
+
+Time spent etc. could maybe be an indicator which observations are more authentic and should be considered in a later stage (treatment could be done similarly to the approach of the original study).
+
+```{r}
+# drop variables that will not be taken into account in the analysis
+data_selected <- data_complete %>% 
+  dplyr::select(!c(1:22, starts_with("vig"), starts_with("t_")))
+```
+
+A glimpse on the variables that are left for now:
+
+```{r}
+glimpse(data_selected)
+```
+
+## Replace missing values with "NA"
+
+Outcome variables: replacing "0" with "NA" in open text answers
+
+```{r}
+data_clean <- data_selected %>% 
+  mutate(open_hatedefinition = na_if(open_hatedefinition, ""),
+         open_allow = na_if(open_allow, ""))
+
+# save cleaned dataset
+data_clean %>% write_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_clean.csv")
+
+# import clean dataset if needed
+# data_clean <- read_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_clean.csv")
+```
+
+For now we are left with data on Basic Sociodemographics, Political preferences and Behavior, Speech traits, Online Behavior, and Speech Governance Preferences, as well as the two free text items on personal definition of hate speech (outcome variable) and the opinion on what should not be allowed to say on social media. Some meta data like language of the questionnaire, country etc. is still included as well.
+
+# Sample Descriptives
+
+## Respondents per Country
+
+The main study aimed at at least 1,500 respondents per country.
+
+```{r}
+country_counts <- data_clean %>% count(country)
+
+respondents_per_country <- ggplot(country_counts, aes(x = fct_reorder(country, n), y = n)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_text(aes(label = n), vjust = -0.3, color = "black") +
+  labs(title = "Number of Respondents per Country",
+       x = "Country",
+       y = "Number of Respondents") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme_minimal()
+
+# save plot for PAP
+# ggsave("figures/Respondents_per_Country.png", respondents_per_country)
+
+respondents_per_country
+```
+
+For potential subgroup analysis on countries it should be taken into account that respondent numbers differ from 455 (phl) to 2945 (USA).
+
+## Sample Balance Check
+
+According to the pre-analysis plan of the main study, the respondents should be balanced across age (18-40 and 41-65+), sex (male, female), and education (below college, at least college education).
+
+```{r, echo=FALSE}
+# create additional age variable with only two values
+data_age <- data_clean %>% 
+  drop_na(age) %>% 
+  mutate(age_group = ifelse(age >= 18 & age <= 40, '18-40', '41-65+'))
+
+# create additional eduaction variable with values below college and at least college
+data_educ <- data_clean %>% 
+  drop_na(educ_cat) %>% 
+  mutate(educ_group = ifelse(educ_cat == "High", "at_least_college", "below_college"))
+
+# plot distributions
+
+# age
+p_age <- ggplot(data_clean, aes(x = age)) +
+  geom_histogram(binwidth = 1, fill = 'skyblue') +
+  theme_minimal() +
+  ggtitle("Age Distribution")
+
+p_age_group <- ggplot(data_age, aes(x = age_group)) +
+  geom_bar(fill = 'skyblue') +
+  theme_minimal() +
+  ggtitle("Age Group Balance")
+
+# Gender
+p_gender <- ggplot(data_clean, aes(x = gender)) +
+  geom_bar(fill = 'skyblue') +
+  theme_minimal() +
+  ggtitle("Gender Distribution")
+
+# Education
+p_education <- ggplot(data_clean, aes(x = educ_cat)) +
+  geom_bar(fill = 'skyblue') +
+  theme_minimal() +
+  ggtitle("Education Distribution")
+
+p_educ_group <- ggplot(data_educ, aes(x = educ_group)) +
+  geom_bar(fill = 'skyblue') +
+  theme_minimal() +
+  ggtitle("Education Group Balance")
+```
+
+### Age 
+
+```{r}
+# Combine Age Plots using facet_wrap
+gridExtra::grid.arrange(p_age, p_age_group, ncol = 1)
+```
+
+The age groups are relatively balanced. In case of excluding respondents below or equal 25, I check how many observations would not be taken into account for the analysis:
+
+```{r}
+# count how many are in age group 1 (18-29)
+data_clean %>% group_by(age <= 25, age > 25) %>% count() 
+```
+
+I would lose 3,391 observations by excluding people younger than 25 or 25 years old.
+
+### Gender
+
+```{r}
+# Print gender plot
+p_gender
+```
+
+Since there are many more male respondents, it should be taken into account that the sample is not balanced across gender.
+
+### Education
+
+```{r}
+# Combine education plots
+gridExtra::grid.arrange(p_education, p_educ_group, ncol = 2)
+```
+
+
+# Overall Missingness
+
+Before visualizing overall missingness in the data, we drop those variables that have already been summarized in an additional categorical variable (e.g. ethnicity) or that are country specific and will be looked at separately (e.g. partyid_), to avoid distortion of the picture.
+
+```{r, echo=TRUE}
+# drop variable groups that are already transformed into categorical variables or are country-specific
+data_selected_2 <- data_clean %>% 
+  dplyr::select(c("gender", starts_with("tp_"), "speak_freely", "leftright", "speak_freely_pers",
+                  starts_with("silencing_"), starts_with("empathy"), starts_with("exp_"),
+                  starts_with("tradeoffs_"),starts_with("resp_")), "content_regulation", "open_hatedefinition",
+                "open_allow", "Q_Language", "country", "age_cat", "educ_cat", "ethnicity_cat", "minority_cat",
+                "polinterest_cat")
+
+# Calculate missing values
+missing_values <- sapply(data_selected_2, function(x) sum(is.na(x)))
+missing_percentage <- sapply(data_selected_2, function(x) sum(is.na(x)) / length(x) * 100)
+missing_data <- data.frame(Variable = names(data_selected_2), MissingValues = missing_values, MissingPercentage = missing_percentage)
+
+# Order data by missing percentage
+missing_data <- missing_data %>% arrange(desc(MissingPercentage))
+
+# Create a bar plot
+ggplot(missing_data, aes(x = reorder(Variable, MissingPercentage), y = MissingPercentage)) +
+  geom_bar(stat = 'identity', fill = 'skyblue') +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = 'Variable', y = 'Percentage of Missing Data', title = 'Missing Data by Variable')
+
+# Print the table of missing data
+print(missing_data)
+```
+
+
+**First Conclusions**
+
+* Most NA's are in sub questions of political preferences and open text items
+* We have full data availability for gender, language, and country. 
+* Less than one per cent is missing in minority, age, and political interest
+
+**Educational Attainment (educ_cat)**: 
+only 1.4 per cent missing 
+-> observations without information can just be dropped
+
+**Hate Definition (open_hatedefinition)**: 
+19.4 per cent missing 
+-> further analysis of characteristics of those missing should be done
+
+# Variables of interest
+
+## Educational Attainment
+
+### Distribution across different Countries
+
+```{r}
+# Gathering all country education level variables into long format
+educ_vars <- grep("education_", names(data_clean), value = TRUE)
+df_long <- data_clean %>%
+  select(all_of(educ_vars)) %>%
+  pivot_longer(cols = everything(), names_to = "Country_Educ_Var", values_to = "Education_Level") %>% 
+  drop_na()
+
+# Creating individual plots for each country
+plots <- list()
+for(country_var in unique(df_long$Country_Educ_Var)) {
+  plots[[country_var]] <- ggplot(subset(df_long, Country_Educ_Var == country_var), aes(x = Education_Level, fill = Education_Level)) +
+    geom_bar() +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(x = 'Education Level', y = 'Count', title = country_var)
+}
+
+print(plots)
+```
+
+
+### Distribution across Demographic Groups
+
+
+```{r}
+# Gender distribution
+plot_gender <- ggplot(data_clean, aes(x = educ_cat, fill = educ_cat)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ gender) +
+  theme_minimal() +
+  labs(x = 'Education Category', y = 'Count', title = 'Distribution of Education Categories by Gender') 
+plot_gender
+
+# Age category distribution
+plot_age_cat <- ggplot(data_clean, aes(x = educ_cat, fill = educ_cat)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ age_cat) +
+  theme_minimal() +
+  labs(x = 'Education Category', y = 'Count', title = 'Distribution of Education Categories by Age Category')
+plot_age_cat
+
+# Minority category distribution
+plot_minority_cat <- ggplot(data_clean, aes(x = educ_cat, fill = educ_cat)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ minority_cat) +
+  theme_minimal() +
+  labs(x = 'Education Category', y = 'Count', title = 'Distribution of Education Categories by Minority Category')
+plot_minority_cat
+```
+
+
+## Open-Text Items
+
+### Definition of Hate Speech
+
+Look at some examples that I can read (German and English):
+
+```{r}
+# number of observations in these languages 
+data_clean %>% 
+  filter(Q_Language == "EN" | Q_Language == "DE") %>% 
+  count()
+```
+Roughly a third of the observations are in English or German language.
+
+```{r}
+# 20 examples
+data_clean %>% 
+  filter(Q_Language == "EN" | Q_Language == "DE") %>% 
+  select(open_hatedefinition) %>% 
+  drop_na() %>% 
+  head(20)
+```
+
+**Text Length**
+
+```{r}
+# Calculate Word Counts
+data_clean <- data_clean %>%
+  mutate(word_count_hatedef = strsplit(as.character(open_hatedefinition), " ") %>%
+           sapply(length),
+         word_count_allow = strsplit(as.character(open_allow), " ") %>% 
+           sapply(length))
+
+# Create Distribution Plot for open_hatedefinition
+
+# Adjust binwidth for open_hatedefinition
+binwidth_hatedef = max(1, floor((392 - 1) / 30))  # for a reasonable number of bins
+
+# Plot for open_hatedefinition
+ggplot(data_clean, aes(x = word_count_hatedef)) +
+  geom_histogram(binwidth = binwidth_hatedef, fill = "skyblue", color = "black") +
+  xlim(c(0, 400)) +  # Adjust x-axis limits
+  labs(title = "Word Count Distribution: open_hatedefinition",
+       x = "Word Count",
+       y = "Frequency")
+```
+
+Almost all answers have a length below 100.
+
+**Missingness**
+
+Seen that there is high missingness (19.4%) in my outcome variable, I want to find out more about people who did not specify their own definition of hate speech.
+
+```{r}
+# Filter rows where open_hatedefinition is missing
+missing_open_hatedefinition <- data_clean %>% 
+  filter(is.na(open_hatedefinition))
+
+# Analyzing sociodemographics of those who did not answer
+sociodemographic_analysis <- missing_open_hatedefinition %>% 
+  select(educ_cat, gender, age_cat, minority_cat) %>% 
+  summary()
+
+print(sociodemographic_analysis)
+
+# STILL COMPARE TO THE BALANCE OF THESE VARIABLES IN THE REST OF THE DATA SET
+```
+### What should not be allowed to say on social media?
+
+Look at 20 examples:
+
+```{r}
+# 20 examples
+data_clean %>% 
+  filter(Q_Language == "EN" | Q_Language == "DE") %>% 
+  select(open_allow) %>% 
+  drop_na() %>% 
+  head(20)
+```
+
+**Text length**
+
+```{r}
+# Create Distribution Plot for open_allow
+
+# Adjust binwidth for open_allow
+binwidth_allow = max(1, floor(763 / 30))  # for a reasonable number of bins
+
+# Plot for open_allow
+ggplot(data_clean, aes(x = word_count_allow)) +
+  geom_histogram(binwidth = binwidth_allow, fill = "skyblue", color = "black") +
+  xlim(c(0, 800)) +  # Adjust x-axis limits
+  ylim(c(0, 5500)) +
+  labs(title = "Word Count Distribution: open_allow",
+       x = "Word Count",
+       y = "Frequency")
+```
+
+Almost all answers have a length below 200.
+
+**Missingness**
+
+Seen that there is high missingness (20.5%) in my second outcome variable, I want to find out more about people who did not specify their speech prohibition preferences.
+
+```{r}
+# Filter rows where open_hatedefinition is missing
+missing_open_allow <- data_clean %>% 
+  filter(is.na(open_allow))
+
+# Analyzing sociodemographics of those who did not answer
+sociodemographic_analysis <- missing_open_allow %>% 
+  select(educ_cat, gender, age_cat, minority_cat) %>% 
+  summary()
+
+print(sociodemographic_analysis)
+```
+
+### Comparison
+
+```{r}
+# Create Summary Table
+summary_table <- data.frame(
+  Variable = c("open_hatedefinition", "open_allow"),
+  Min = c(min(data_clean$word_count_hatedef, na.rm = TRUE), min(data_clean$word_count_allow, na.rm = TRUE)),
+  Max = c(max(data_clean$word_count_hatedef, na.rm = TRUE), max(data_clean$word_count_allow, na.rm = TRUE)),
+  Mean = c(mean(data_clean$word_count_hatedef, na.rm = TRUE), mean(data_clean$word_count_allow, na.rm = TRUE)),
+  SD = c(sd(data_clean$word_count_hatedef, na.rm = TRUE), sd(data_clean$word_count_allow, na.rm = TRUE))
+)
+
+print(summary_table)
+```
+
+## Other variables of interest 
+
+### Political interest 
+
+[polinterest_cat]
+
+```{r}
+# Set theme for plots
+theme_set(theme_minimal())
+
+# Plot for Political Interest
+p_polinterest <- ggplot(data_clean, aes(x = polinterest_cat, fill = 'skyblue')) +
+  geom_bar() +
+  scale_fill_identity() +
+  labs(title = "Political Interest")
+
+p_polinterest
+```
+
+
+### Left-right Scale 
+
+[leftright]
+
+```{r}
+# Ensure that leftright is numeric
+data_clean$leftright <- as.numeric(data_clean$leftright)
+
+# Descriptive statistics for the Left-Right Scale
+leftright_stats <- data_clean %>%
+  summarise(
+    min = min(leftright, na.rm = TRUE),
+    max = max(leftright, na.rm = TRUE),
+    mean = mean(leftright, na.rm = TRUE),
+    sd = sd(leftright, na.rm = TRUE)
+  )
+
+leftright_stats
+
+# plot
+p_leftright <- ggplot(data_clean, aes(x = leftright, fill = 'skyblue')) +
+  geom_histogram(binwidth = 0.5) +
+  scale_fill_identity() +
+  labs(title = "Left-Right Scale")
+
+p_leftright
+```
+
+
+### Empathy 
+
+[empathy_person, empathy_predicting, empathy_perspective]
+
+```{r}
+p_empathy_person <- ggplot(data_clean, aes(x = empathy_person)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Empathy Person Distribution")
+
+p_empathy_predicting <- ggplot(data_clean, aes(x = empathy_predicting)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Empathy Predicting Distribution")
+
+p_empathy_perspective <- ggplot(data_clean, aes(x = empathy_perspective)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Empathy Perspective Distribution")
+
+gridExtra::grid.arrange(p_empathy_person, p_empathy_predicting, p_empathy_perspective)
+```
+
+Respondents rather see themselves as being very empathetic - this is probably biased. Never the less, there is a certain distribution.
+
+### Experience with Hate and Offensive Speech 
+
+[exp_offended, exp_threatened, exp_witnessed, exp_disagree, exp_angry]
+
+```{r}
+# Create individual plots
+p_exp_offended <- ggplot(data_clean, aes(x = exp_offended)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Experience Offended Distribution")
+
+p_exp_threatened <- ggplot(data_clean, aes(x = exp_threatened)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Experience Threatened Distribution")
+
+p_exp_witnessed <- ggplot(data_clean, aes(x = exp_witnessed)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Experience Witnessed Distribution")
+
+p_exp_disagree <- ggplot(data_clean, aes(x = exp_disagree)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Experience Disagree Distribution")
+
+p_exp_angry <- ggplot(data_clean, aes(x = exp_angry)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Experience Angry Distribution")
+
+# arrange plots together
+gridExtra::grid.arrange(p_exp_offended, p_exp_threatened, p_exp_witnessed, p_exp_disagree, p_exp_angry)
+```
+
+
+### Online Hostile Engagement 
+
+[exp_postregret, exp_postoffensive, exp_postopinion]
+
+```{r}
+# Create individual plots
+p_exp_postregret <- ggplot(data_clean, aes(x = exp_postregret)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Post Regret Distribution")
+
+p_exp_postoffensive <- ggplot(data_clean, aes(x = exp_postoffensive)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Post Offensive Distribution")
+
+p_exp_postopinion <- ggplot(data_clean, aes(x = exp_postopinion)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "Post Opinion Distribution")
+
+# arrange plots together
+gridExtra::grid.arrange(p_exp_postregret, p_exp_postoffensive, p_exp_postopinion, ncol = 1)
+```
+
+
+
