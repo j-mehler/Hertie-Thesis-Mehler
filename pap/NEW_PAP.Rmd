@@ -35,7 +35,7 @@ notes: erst einfache Vergleiche beider Gruppen (gegliedert in content und form) 
 * Textlänge, 
 * Komplexität der Sprache (?)
 * Inhaltkategorie -> noch herausfinden, was das ist, Muster in Daten suchen
-* "Politisierung" -> how easy it is to say which political spectrum they are in (siehe Polarisierungspaper Predictiveness Analysis for Political Affiliation: #Polar Scores: Measuring partisanship using social media content (Hemphill, Culotta, and Heston 2016))
+* "Politisierung" -> how easy it is to say which political spectrum they are in / where on the scale 0-10 they are (siehe Polarisierungspaper Predictiveness Analysis for Political Affiliation: #Polar Scores: Measuring partisanship using social media content (Hemphill, Culotta, and Heston 2016))
 
 danach: Regressions mit meinen Controls, für alle bereits verglichenen Outcomes die sinnvoll erscheinen
 ---
