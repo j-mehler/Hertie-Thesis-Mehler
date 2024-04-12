@@ -26,6 +26,8 @@ library(here)
 library(cluster)
 library(factoextra)
 library(ggplot2)
+
+theme_set(theme_minimal())
 ```
 
 
@@ -34,10 +36,20 @@ library(ggplot2)
 data <- read_csv(here("data/data_numeric_filtered.csv"))
 
 # remove columns with only zeros
-data <- data %>% select_if(~any(. != 0))
+data <- data %>% select_if(~any(. != 0)) 
 
-# set theme
-theme_set(theme_minimal())
+# remove any rows with only zeros
+
+# create function 
+not_zero <- function(x) {
+  x == 0
+}
+
+# create vector with column names
+all_columns <- data %>% colnames()
+
+# filter out any columns that are only zero
+data <- data %>% filter(!if_all(all_columns, not_zero))
 ```
 
 # PAM clustering
@@ -53,7 +65,6 @@ The silhouette coefficient is a measure of how similar an object is to its own c
 fviz_nbclust(data, FUN = pam, method = "silhouette", k.max = 15)
 ```
 
-With my small batch (359 observations): 2, 6 or 8 seems to be good
 
 ### Elbow Method
 
@@ -64,7 +75,176 @@ The elbow method involves plotting the total within-cluster sum of squares (WSS)
 fviz_nbclust(data, FUN = pam, method = "wss", k.max = 15)
 ```
 
-With my small batch (359 observations): 4 or 6 seems to be good
+4 or 6 seems to be good
+
+
+# PAM Method with 4 clusters
+
+```{r}
+# The PAM algorithm is based on the search for k representative objects or medoids among the observations of the data set.
+optimal_k <- 4 
+pam_result <- pam(data, k = optimal_k, metric = "euclidean")
+
+# add cluster variable to my dataset
+data %>% mutate(cluster = pam_result$cluster) %>% write_csv(here("data/cluster_raw.csv"))
+```
+
+## Best Representative of Each Cluster
+
+```{r}
+# Getting the medoids
+medoids <- pam_result$medoids
+
+medoid_indices <- pam_result$id.med # getting medoid indices
+cluster_assignments <- pam_result$clustering # get cluster assignments for each observation
+
+# Loop through each medoid and print the variable names where the value is 1
+for (i in 1:length(medoid_indices)) {
+  medoid_index <- medoid_indices[i] # Current medoid index
+  medoid_row <- data[medoid_index, ] # Subsetting the specific medoid row
+  
+  # Getting variable names where the medoid has a value of 1
+  vars_with_value_1 <- names(medoid_row)[which(medoid_row == 1)]
+  
+  # Count the number of observations in the current cluster
+  num_obs_in_cluster <- sum(cluster_assignments == i)
+  
+  cat("Medoid", medoid_index, "represents a cluster with", num_obs_in_cluster, "observations. Items:\n")
+  print(vars_with_value_1)
+  cat("\n")
+}
+```
+
+## Cluster Summary Statistics
+
+### Item count by Cluster
+
+```{r}
+data <- data %>% mutate(cluster = cluster_assignments)
+
+# Calculate mean for each variable within each cluster
+mean_values <- data %>%
+  mutate(cluster = pam_result$clustering) %>%
+  group_by(cluster) %>%
+  summarise_all(mean)
+
+# Calculate count for each variable within each cluster
+sum_values <- data %>%
+  mutate(cluster = pam_result$clustering) %>%
+  group_by(cluster) %>%
+  summarise_all(sum)
+
+sum_values %>% gather(column, value, -cluster) %>% spread(cluster, value)
+```
+
+### Cluster Statistics
+
+```{r}
+# Calculate the absolute number of observations and share for each cluster
+observations <- table(pam_result$clustering)
+share_of_observations <- observations / sum(observations)
+
+# Assuming 'data_binary' is your binary dataset for mean amount of items calculation
+mean_amount_items <- sapply(split(data, pam_result$clustering), function(cluster) {
+  rowSums(cluster) %>%
+    mean()
+})
+
+variance_amount_items <- sapply(split(data, pam_result$clustering), function(cluster) {
+  rowSums(cluster) %>%
+    var()
+})
+
+# Combining calculated statistics into a single dataframe (simplified example)
+stats_df <- data.frame(
+  cluster = 1:length(observations),
+  observations = observations,
+  share = share_of_observations,
+  mean_amount_items = mean_amount_items,
+  variance_amount_items = variance_amount_items
+)
+
+stats_df %>% select(-c(observations.Var1, share.Var1))
+```
+
+
+### Mean number of items and variance within each cluster
+
+```{r}
+# For visualization, creating a sample plot for one variable's mean value across clusters
+ggplot(stats_df, aes(x = factor(cluster), y = mean_amount_items)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = mean_amount_items - sqrt(variance_amount_items),
+                    ymax = mean_amount_items + sqrt(variance_amount_items)),
+                width = 0.2) +
+  labs(x = "Cluster", y = "Mean Amount of Items") +
+  theme_minimal()
+```
+
+
+
+### Most important items in each cluster
+
+```{r}
+mean_values_long <- mean_values %>% pivot_longer(cols = content.attack:target.vulnerable, names_to = "item", values_to = "mean")
+
+cluster_1 <- mean_values_long %>% filter(cluster == 1)
+cluster_2 <- mean_values_long %>% filter(cluster == 2)
+cluster_3 <- mean_values_long %>% filter(cluster == 3)
+cluster_4 <- mean_values_long %>% filter(cluster == 4)
+
+main_items <- function(x) {
+  x %>% 
+    arrange(desc(mean)) %>% 
+    head(8)
+}
+
+```
+
+***Cluster 1***
+
+```{r}
+main_items(cluster_1)
+```
+
+Main components for cluster 1 are "attack (75%) against a person (72%)"
+
+***Cluster 2***
+
+```{r}
+main_items(cluster_2)
+```
+
+Main components for cluster 2 are "offensive (17%), hateful (27%), dehumanization (20%), content  against a group of people (57%) because of their race (20%)"
+
+
+***Cluster 3***
+
+```{r}
+main_items(cluster_3)
+```
+
+
+Cluster 3 is about nonsense (100%) and other features from the section "other", mostly deniying existence, importance, or any objective characteristics of hate speech.
+
+
+***Cluster 4***
+
+```{r}
+main_items(cluster_4)
+```
+
+Cluster 4 has a focus on incitement (100%), as well as a description of person (32%) AND people (63%) as scope of hate speech. 
+
+-> Would be interesting to look at some text examples of these definitions compared to the other clusters.
+
+### Visualize Cluster
+
+```{r}
+# visualize 
+fviz_cluster(pam_result, data = data_filtered)
+```
+
 
 ## PAM Method with 6 clusters
 
@@ -74,27 +254,34 @@ optimal_k <- 6 # Example value
 pam_result <- pam(data, k = optimal_k, metric = "euclidean")
 ```
 
-### Best Representative of Each Cluster
+### Best Representative and Size of each Cluster
 
 ```{r}
-# Printing the medoids
+# Getting the medoids
 medoids <- pam_result$medoids
 
 medoid_indices <- pam_result$id.med # getting medoid indices
+cluster_assignments <- pam_result$clustering # get cluster assignments for each observation
 
 # Loop through each medoid and print the variable names where the value is 1
-for (i in medoid_indices) {
-  medoid_row <- data[i, ] # Subsetting the specific medoid row
+for (i in 1:length(medoid_indices)) {
+  medoid_index <- medoid_indices[i] # Current medoid index
+  medoid_row <- data[medoid_index, ] # Subsetting the specific medoid row
   
   # Getting variable names where the medoid has a value of 1
   vars_with_value_1 <- names(medoid_row)[which(medoid_row == 1)]
   
-  cat("Medoid", i, "items:\n")
+  # Count the number of observations in the current cluster
+  num_obs_in_cluster <- sum(cluster_assignments == i)
+  
+  cat("Medoid", medoid_index, "represents a cluster with", num_obs_in_cluster, "observations. Items:\n")
   print(vars_with_value_1)
   cat("\n")
 }
 
 ```
+
+
 ### Visualize
 
 ```{r}
@@ -103,35 +290,42 @@ fviz_cluster(pam_result, data = data_filtered)
 ```
 
 
-## PAM Method with 4 clusters
+
+## PAM Method with 8 clusters
 
 ```{r}
 # The PAM algorithm is based on the search for k representative objects or medoids among the observations of the data set.
-optimal_k <- 4 # Example value
+optimal_k <- 8 # Example value
 pam_result <- pam(data, k = optimal_k, metric = "euclidean")
 ```
 
-### Best Representative of Each Cluster
+### Best Representative and Size of each Cluster
 
 ```{r}
-# Printing the medoids
+# Getting the medoids
 medoids <- pam_result$medoids
 
 medoid_indices <- pam_result$id.med # getting medoid indices
+cluster_assignments <- pam_result$clustering # get cluster assignments for each observation
 
 # Loop through each medoid and print the variable names where the value is 1
-for (i in medoid_indices) {
-  medoid_row <- data[i, ] # Subsetting the specific medoid row
+for (i in 1:length(medoid_indices)) {
+  medoid_index <- medoid_indices[i] # Current medoid index
+  medoid_row <- data[medoid_index, ] # Subsetting the specific medoid row
   
   # Getting variable names where the medoid has a value of 1
   vars_with_value_1 <- names(medoid_row)[which(medoid_row == 1)]
   
-  cat("Medoid", i, "items:\n")
+  # Count the number of observations in the current cluster
+  num_obs_in_cluster <- sum(cluster_assignments == i)
+  
+  cat("Medoid", medoid_index, "represents a cluster with", num_obs_in_cluster, "observations. Items:\n")
   print(vars_with_value_1)
   cat("\n")
 }
 
 ```
+
 ### Visualize
 
 ```{r}
@@ -151,19 +345,24 @@ pam_result <- pam(data, k = optimal_k, metric = "euclidean")
 ### Best Representative of Each Cluster
 
 ```{r}
-# Printing the medoids
+# Getting the medoids
 medoids <- pam_result$medoids
 
 medoid_indices <- pam_result$id.med # getting medoid indices
+cluster_assignments <- pam_result$clustering # get cluster assignments for each observation
 
 # Loop through each medoid and print the variable names where the value is 1
-for (i in medoid_indices) {
-  medoid_row <- data[i, ] # Subsetting the specific medoid row
+for (i in 1:length(medoid_indices)) {
+  medoid_index <- medoid_indices[i] # Current medoid index
+  medoid_row <- data[medoid_index, ] # Subsetting the specific medoid row
   
   # Getting variable names where the medoid has a value of 1
   vars_with_value_1 <- names(medoid_row)[which(medoid_row == 1)]
   
-  cat("Medoid", i, "items:\n")
+  # Count the number of observations in the current cluster
+  num_obs_in_cluster <- sum(cluster_assignments == i)
+  
+  cat("Medoid", medoid_index, "represents a cluster with", num_obs_in_cluster, "observations. Items:\n")
   print(vars_with_value_1)
   cat("\n")
 }
@@ -176,3 +375,4 @@ for (i in medoid_indices) {
 # visualize 
 fviz_cluster(pam_result, data = data_filtered)
 ```
+

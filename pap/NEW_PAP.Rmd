@@ -1,5 +1,5 @@
 ---
-title: "Educational Attainment and Hate Speech Knowledge and Attitudes - Pre Analysis Plan"
+title: "How does formal education shape people's conceptions of hate speech on social media? - Pre Analysis Plan"
 author: "Johanna Mehler"
 date: "`r format(Sys.Date(), '%d %B, %Y')`" # Date in "01 January, 2024" format
 output:
@@ -22,13 +22,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Summary (NEW)
 
-Amidst the growing concern over hate speech online and its amplification via social media and generative AI, the following question arises: How inclusive is the discourse on the trade-off between freedom of speech and protection of vulnerable societal groups? To investigate this within the phenomenon of hate speech on social media, the following research question is addressed: How does higher education shape conceptions of hate speech?
+Amidst the growing concern over hate speech online and its amplification via social media and generative AI, discourse on the trade-off between freedom of speech and protection of vulnerable societal groups has once again received great attention. But how inclusive is the discussion? 
 
-Research by Heijden and Verkuyten [-@heijden2020] on educational attainment and political attitudes suggests that higher educational attainment goes hand in hand with more sophisticated, but also more ideologically defined political knowledge and views. It is therefore hypothesized that an academic level of education leads to more complex definitions of hate speech (H1) and that academic respondents' definitions of hate speech are more politically defined than those of non-academics (H2).
+Participation in political discourse was and is also a question of education. To investigate this within the phenomenon of hate speech on social media, the following research question is addressed: How does formal education shape conceptions of hate speech?
+
+Research by Heijden and Verkuyten [-@heijden2020] on educational attainment and political attitudes suggests that higher educational attainment goes hand in hand with more sophisticated, but also more ideologically defined political knowledge and views. It is therefore hypothesized that an academic level of education leads to more sophisticated definitions of hate speech (H1) and that academic respondents' definitions of hate speech are more politically defined than those of non-academics (H2).
 
 To empirically test these hypotheses, the study will analyze data from the “Global Preferences for Hate Speech Moderation” survey (Munzert et al., to be published), featuring responses from over 19,000 participants across eleven countries. The methodology involves creating different indicators from the open-text response in the survey on how people personally define hate speech, describing the content of individuals’ hate speech definitions (what do people regard as relevant) and the form (how do they express themselves).
 
-The analytical approach includes independent samples t-tests and chi-square-tests to evaluate differences of the definitions' properties between academics and non-academics, and several multinomial logistic regressions to examine the role of an academic background on shaping the personal hate speech definition.
+The analytical approach includes independent samples t-tests and chi-square-tests to evaluate differences in the definitions' properties between academics and non-academics, and several multinomial logistic regressions to examine the role of an academic background in shaping the personal hate speech definition.
 
 ---
 notes: erst einfache Vergleiche beider Gruppen (gegliedert in content und form) für 
@@ -171,8 +173,8 @@ Most of these variables were measured as pre-treatment variables and are availab
 
 -	Gender (female/male/other)
 -	Age (year of birth, derived age, collapsed into categories 18-29, 30-49, 50-69, 70+)
--	Political interest (measured with four levels and collapsed into low/high)
--	Empathy (first principal component of responses to three topic-specific items)
+-	Political interest (measured with four levels and collapsed into low/intermediate/high for a meaningful distribution)
+-	Empathy (first principal component of responses to three topic-specific items, used as composite measure of empathy in further analysis. One or two missing values in the three items were immputed with the mean of the existing answers)
 -	experience with hate speech 
 o	experience with hate and offensive speech (score created from the answers on five items)
 o	online hostile engagement (score created from the answers on three items)
@@ -215,7 +217,7 @@ Serrano-Contreras et al. understand polarization as “a result of differing vie
 * Conduct sentiment analysis on the open-text responses to the item "open_allow" and calculate the distance to the mean of all respondents to determine the sentiment score.
 * Each response is given a numerical sentiment score (only positive numbers because of distance measure), indicating the intensity of sentiment
 
-**1. Predictiveness Analysis for Political Affiliation:**
+**1. Predictiveness (Predictability) Analysis for Political Affiliation:**
 
 **Source:** #Polar Scores: Measuring partisanship using social media content [@hemphill2016]
 

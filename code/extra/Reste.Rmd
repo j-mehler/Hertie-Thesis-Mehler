@@ -1,0 +1,123 @@
+---
+title: "Code Reste"
+author: "Johanna Mehler"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Country-Specific Patterns
+
+```{r}
+# add country column to the dataframe again - but needs to have same amount of rows...
+data_numeric_country <- data_numeric %>% mutate(Input.country = batches$Input.country)
+
+country_specific_patterns <- data_numeric_country %>%
+  group_by(Input.country) %>%
+  summarise(across(starts_with("Answer."), sum, na.rm = TRUE))
+
+# Preview the results for a few countries
+head(country_specific_patterns)
+```
+Numbers BEFORE filtering, need to be adjusted
+
+* Great Britain (gbr): High frequency of attack content (116), incitement content (66), and a notable focus on hateful content (48).
+* Germany (ger): Similar to Great Britain in terms of attack content (111) but with a higher frequency of dehumanization content (49) and incitement content (72).
+* India (English responses, indeng): Shows a lower frequency of attack content (59) compared to GB and Germany, with a significant focus on religion as a target (55).
+* Nigeria (nig): Notable for high dehumanization content (33) and a focus on race (51) and religion (45) as targets.
+* Philippines (English responses, phleng): Similar to Nigeria in terms of dehumanization content (32) and a focus on hateful content (34).
+
+
+# Clustering
+
+Since your variables are boolean, K-modes is more suitable than K-means. You can use the klaR package for K-modes:
+```{r}
+library(klaR) # ACHTUNG stürzt immer ab
+
+kmodes_result <- kmodes(batches, modes = 5)
+
+kmodes_result
+```
+
+# Filtering for language and checking country selection
+
+```{r}
+# filter: for now only English answers (because the others are not translated yet)
+data_en <- data_all %>% filter(Q_Language == "EN")
+
+# for now we are left with three countries: usa (2945), phleng (837), nig (464)
+data_en %>% select(country) %>% unique()
+```
+
+For now we are left with three countries: usa (2945), phleng (837), nig (464), all together 4,246 English observations
+
+
+# Missingness
+
+Hate Definition (open_hatedefinition): 19.4 (24.1???) per cent missing. Seen that there is high missingness of nearly a quarter in my outcome variable, I want to find out more about people who did not specify their own definition of hate speech.
+
+```{r}
+# Filter rows where open_hatedefinition is missing
+missing_hatedef <- data %>% 
+  filter(is.na(open_hatedefinition)) 
+
+not_missing_hatedef <- data %>% 
+  filter(!is.na(open_hatedefinition)) 
+
+# Comparing sociodemographics of those who did not answer with the rest
+
+# Plotting for each variable
+variables <- data %>% select(-open_hatedefinition) %>% colnames()
+
+for (var in variables) {
+  # Plot for missing_hatedef dataset
+  p1 <- ggplot(data = missing_hatedef, aes(x = .data[[var]])) +
+    geom_bar() +
+    theme_minimal() +
+    labs(title = paste("Missing:", var))
+  
+  # Plot for not_missing_hatedef dataset
+  p2 <- ggplot(data = not_missing_hatedef, aes(x = .data[[var]])) +
+    geom_bar() +
+    theme_minimal() +
+    labs(title = paste("Not Missing:", var))
+  
+  # Combine plots
+  plot_list <- list(p1, p2)
+  multiplot <- cowplot::plot_grid(plotlist = plot_list, nrow = 1)
+  
+  # Show the plots
+  print(multiplot)
+}
+```
+
+Gender: seems not to be important for this.
+Age: in the age of 18-29, much less people are missing a definition -> make a more sophisticated plot out of this (with percentages only)
+Minority: have provided a bit more information -> also show in plot
+Academic: slightly different in non-academics -> also show in plot!
+
+
+# Examining Batches
+
+```{r}
+# read in batches
+Batch_1 <- read_csv("~/OneDrive/1_Hertie Studies/Thesis/2023-hate-speech-opentext/definition-classifications/Batch_394877_batch_results.csv")
+Batch_2 <- read_csv("~/OneDrive/1_Hertie Studies/Thesis/2023-hate-speech-opentext/definition-classifications/Batch_395273_batch_results.csv")
+
+# find out which annotators are represented in each batch
+Batch_1 %>% select(WorkerId) %>% unique() # 2 annotators
+Batch_2 %>% select(WorkerId) %>% unique() # same 2 annotators
+
+Batch_1 %>% group_by(WorkerId) %>% count()
+Batch_2 %>% group_by(WorkerId) %>% count()
+```
+
+
+
+
+
+
+

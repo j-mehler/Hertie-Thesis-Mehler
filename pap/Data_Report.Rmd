@@ -33,7 +33,7 @@ library("haven")
 As a first step, we load the data and print the variable names in order to identify the parts of the questionnaire that are relevant for the study.
 
 ```{r}
-# load preprocessed data
+# load pre-processed data
 load("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_survey_prepd_respondent.RData")
 data_complete <- data_survey_complete_resp
 

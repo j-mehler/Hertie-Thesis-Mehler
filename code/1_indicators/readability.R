@@ -20,5 +20,20 @@ pacman::p_load_gh(c(
 # calculate readability scores
 readability <- readability(selection$Input.hate_definition, list(selection$Input.ResponseId, selection$Input.hate_definition))
 
+# save all scores
+readability %>% write_csv("data/readability_all_scores.csv")
+
+# select average grade level as final readability score
+readability_score <- readability %>% select(Input.ResponseId, Input.hate_definition, Average_Grade_Level)
+
+# change colname
+colnames(readability_score) <- c("ResponseId", "hate_definition", "readability_score")
+
+# check distribution and values
+readability_score %>% summary()
+
+# remove "Inf" value
+readability_score[is.infinite(readability_score)] <- NA
+
 # save data (respondent id and new indicator variables)
-readability %>% write_csv("data/readability.csv")
+readability_score %>% write_csv("data/readability.csv")
