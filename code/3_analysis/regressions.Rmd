@@ -24,6 +24,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(here)
+library(table1)
 library(ggplot2)
 library(lmtest)
 
@@ -48,6 +49,23 @@ data <- data %>% filter(!is.na(educ_cat), !is.na(academic_status), text_length <
 
 # check data types and scales
 data %>% summary()
+
+# print table
+table1(~ academic_status + educ_cat + gender + age_cat + polinterest + minority_cat + empathy_pc_cat + exp_hate_speech_cat + exp_hostile_engagement_cat + cluster, data = data)
+
+
+
+```
+
+### Compare with whole dataset (19,000+)
+
+```{r}
+# compare with whole dataset
+data_all <- read_csv(here("data/data_clean.csv"))
+
+# print table
+table1(~ educ_cat + gender + age_cat + polinterest + minority_cat, data = data_all)
+
 ```
 
 # Regressions
@@ -99,7 +117,6 @@ vif(model_text_length)
 ```
 
 
-
 ### Less Controls
 
 ```{r}
@@ -108,7 +125,6 @@ model_text_length <- lm(text_length ~ academic_status + gender + age_cat + minor
 
 summary(model_text_length)
 ```
-
 
 
 ***Residuals Plot for Homoscedasticity and Linearity***

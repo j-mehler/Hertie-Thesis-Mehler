@@ -44,14 +44,16 @@ controls_num <- data %>% select(academic_status, age10, minority, polinterest, e
 ```
 
 
-# Create Function how ACADEMIC STATUS moderates the relationship between controls (covariates) and indicators (outcomes)
+## Academic Status as Moderator
 
-## Function for Interaction Model and Modelplot
+Create Function how ACADEMIC STATUS moderates the relationship between controls (covariates) and indicators (outcomes)
+
+### Function for Interaction Model and Modelplot
 
 ```{r}
 model_interaction <- function(data, var1, var2) {
   # Construct the formula as a string
-  formula_str <- paste0(var2, " ~ academic_status:", var1, " + gender + age_cat + minority_cat")
+  formula_str <- paste0(var2, " ~ academic_status:", var1, " + gender + age_cat + total_minutes_log2")
   
   # Convert the string to a formula
   formula_obj <- as.formula(formula_str)
@@ -60,13 +62,13 @@ model_interaction <- function(data, var1, var2) {
   MODEL <- glm(formula_obj, data = data)
   
   # Use plot_model() to visualize the interaction
-  plot <- plot_model(MODEL, type = "pred", terms = c(var1, "academic_status"), title = paste("Predicted probabilities of", var2, "by", var1, "moderated by Academic Status"), colors = "Set2", axis.title = c(var1, var2), legend.title = "Academic Status")
+  plot <- plot_model(MODEL, type = "pred", terms = c(var1, "academic_status"), title = paste("Predicted probabilities of", var2, "by", var1, "moderated by Academic Status, controlled for Gender, Age and Survey Commitment"), colors = "Set2", axis.title = c(var1, var2), legend.title = "Academic Status")
   
   print(plot)
 }
 ```
 
-## Function for scatter plot and group comparison
+### Function for scatter plot and group comparison
 
 ```{r}
 # Function to plot a scatter plot between any two specified variables in a dataframe
@@ -89,7 +91,8 @@ plot_scatter <- function(df, var1, var2) {
     geom_smooth(method = "lm", colour = "black", linewidth = 0.5) +
     facet_wrap(vars(academic_status), ncol = 2) +
     theme_minimal() +
-    labs(title = paste("Relationship between", var1, "and", var2, "by Academic Status"))
+    labs(title = paste("Relationship between", var1, "and", var2, "by Academic Status")) +
+    theme(legend.position = "none")
   
   # Print the plots
   print(plot1)
@@ -102,7 +105,7 @@ library(rlang)
 
 ```
 
-## Function for Boxplots, because of categorical cluster variable
+### Function for Boxplots, because of categorical cluster variable
 
 ```{r}
 boxplot_cluster <- function(df, var) {
@@ -124,9 +127,9 @@ boxplot_cluster <- function(df, var) {
 ```
 
 
-## Plot relationships with moderation
+# Plot relationships with moderation
 
-Chose the variables that are in the causal chain "after" education - such as political interest. Because education probably affects these "controls".
+Chose the variables that are in the causal chain "after" education - such as political interest. Because education probably affects these "controls" as well.
 
 ```{r}
 # check colnames to find out which variables to compare in the following section
@@ -134,16 +137,15 @@ data %>% colnames()
 ```
 
 
-### Political Interest
+## Political Interest
 
-First Model (Example without using the function)
 
 ```{r}
-# model
-MODEL <- glm(text_length ~ academic_status:polinterest + gender + age_cat + minority_cat, data = data) 
-  
-# show plot
-plot_model(MODEL, type = "pred", terms = c("polinterest", "academic_status"),  title = "Predicted probabilities of Textlength by Academic Status", colors = "Set2", axis.title = c("Political Interest", "Textlength"), legend.title = "Academic Status")
+## First Model (Example without using the function)
+#MODEL <- glm(text_length ~ academic_status:polinterest + gender + age_cat + minority_cat, #data = data) 
+#  
+## show plot
+#plot_model(MODEL, type = "pred", terms = c("polinterest", "academic_status"),  title = #"Predicted probabilities of Textlength by Academic Status", colors = "Set2", axis.title = #c("Political Interest", "Textlength"), legend.title = "Academic Status")
 ```
 
 
@@ -163,14 +165,14 @@ plot_scatter(data, "cluster", "polinterest")
 model_interaction(data, "cluster", "polinterest")
 boxplot_cluster(data, "polinterest")
 
-# left-right
-plot_scatter(data, "polinterest", "leftright_pred_score")
-model_interaction(data, "polinterest", "leftright_pred_score")
-model_interaction(data, "polinterest_cat_3", "leftright_pred_score")
+## left-right
+#plot_scatter(data, "polinterest", "leftright_pred_score")
+#model_interaction(data, "polinterest", "leftright_pred_score")
+#model_interaction(data, "polinterest_cat_3", "leftright_pred_score")
 ```
 
 
-### Experience with hate speech
+## Experience with hate speech
 
 ```{r}
 # textlength with exp_hate_speech
@@ -188,13 +190,13 @@ plot_scatter(data, "cluster", "exp_hate_speech")
 model_interaction(data, "cluster", "exp_hate_speech")
 boxplot_cluster(data, "exp_hate_speech")
 
-# left-right with exp_hate_speech
-plot_scatter(data, "exp_hate_speech", "leftright_pred_score")
-model_interaction(data, "exp_hate_speech", "leftright_pred_score")
-model_interaction(data, "exp_hate_speech_cat", "leftright_pred_score")
+## left-right with exp_hate_speech
+#plot_scatter(data, "exp_hate_speech", "leftright_pred_score")
+#model_interaction(data, "exp_hate_speech", "leftright_pred_score")
+#model_interaction(data, "exp_hate_speech_cat", "leftright_pred_score")
 ```
 
-### Experience with online hostile engagement
+## Experience with online hostile engagement
 
 ```{r}
 # textlength with exp_hostile_engagement
@@ -212,14 +214,14 @@ plot_scatter(data, "cluster", "exp_hostile_engagement")
 model_interaction(data, "cluster", "exp_hostile_engagement")
 boxplot_cluster(data, "exp_hostile_engagement")
 
-# left-right with exp_hostile_engagement
-plot_scatter(data, "exp_hostile_engagement", "leftright_pred_score")
-model_interaction(data, "exp_hostile_engagement", "leftright_pred_score")
-model_interaction(data, "exp_hostile_engagement_cat", "leftright_pred_score")
+## left-right with exp_hostile_engagement
+#plot_scatter(data, "exp_hostile_engagement", "leftright_pred_score")
+#model_interaction(data, "exp_hostile_engagement", "leftright_pred_score")
+#model_interaction(data, "exp_hostile_engagement_cat", "leftright_pred_score")
 ```
 
 
-### Empathy
+## Empathy
 
 ```{r}
 # textlength with empathy_pc
@@ -243,9 +245,11 @@ model_interaction(data, "empathy_pc_cat", "leftright_pred_score")
 ```
 
 
-# How does EDUCATION moderate the relationship between controls (covariates) and indicators (outcomes)?
+# Education as Moderator
 
-## Function for Interaction Model and Modelplot
+How does EDUCATION moderate the relationship between controls (covariates) and indicators (outcomes)?
+
+### Function for Interaction Model and Modelplot
 
 ```{r}
 model_interaction <- function(data, var1, var2) {
@@ -265,7 +269,7 @@ model_interaction <- function(data, var1, var2) {
 }
 ```
 
-## Function for Scatterplot
+### Function for Scatterplot
 
 ```{r}
 # Function to plot a scatter plot between any two specified variables in a dataframe
@@ -297,7 +301,7 @@ plot_scatter <- function(df, var1, var2) {
 ```
 
 
-## Plot relationships with moderation
+# Plot relationships with moderation
 
 Chose the variables that are in the causal chain "after" education - such as political interest. Because education probably affects these "controls".
 
@@ -306,7 +310,7 @@ Chose the variables that are in the causal chain "after" education - such as pol
 data %>% colnames()
 ```
 
-### Political Interest
+## Political Interest
 
 ```{r}
 plot_scatter(data, "polinterest", "text_length")
@@ -317,12 +321,12 @@ plot_scatter(data, "polinterest", "readability_score")
 model_interaction(data, "polinterest", "readability_score")
 model_interaction(data, "polinterest_cat_3", "readability_score")
 
-plot_scatter(data, "polinterest", "leftright_pred_score")
-model_interaction(data, "polinterest", "leftright_pred_score")
-model_interaction(data, "polinterest_cat_3", "leftright_pred_score")
+#åplot_scatter(data, "polinterest", "leftright_pred_score")
+#åmodel_interaction(data, "polinterest", "leftright_pred_score")
+#åmodel_interaction(data, "polinterest_cat_3", "leftright_pred_score")
 ```
 
-### Experience with hate speech
+## Experience with hate speech
 
 ```{r}
 plot_scatter(data, "exp_hate_speech", "text_length")
@@ -333,12 +337,12 @@ plot_scatter(data, "exp_hate_speech", "readability_score")
 model_interaction(data, "exp_hate_speech", "readability_score")
 model_interaction(data, "exp_hate_speech_cat", "readability_score")
 
-plot_scatter(data, "exp_hate_speech", "leftright_pred_score")
-model_interaction(data, "exp_hate_speech", "leftright_pred_score")
-model_interaction(data, "exp_hate_speech_cat", "leftright_pred_score")
+#plot_scatter(data, "exp_hate_speech", "leftright_pred_score")
+#model_interaction(data, "exp_hate_speech", "leftright_pred_score")
+#model_interaction(data, "exp_hate_speech_cat", "leftright_pred_score")
 ```
 
-### Experience with online hostile engagement
+## Experience with online hostile engagement
 
 ```{r}
 plot_scatter(data, "exp_hostile_engagement", "text_length")
@@ -349,13 +353,13 @@ plot_scatter(data, "exp_hostile_engagement", "readability_score")
 model_interaction(data, "exp_hostile_engagement", "readability_score")
 model_interaction(data, "exp_hostile_engagement_cat", "readability_score")
 
-plot_scatter(data, "exp_hostile_engagement", "leftright_pred_score")
-model_interaction(data, "exp_hostile_engagement", "leftright_pred_score")
-model_interaction(data, "exp_hostile_engagement_cat", "leftright_pred_score")
+#plot_scatter(data, "exp_hostile_engagement", "leftright_pred_score")
+#model_interaction(data, "exp_hostile_engagement", "leftright_pred_score")
+#model_interaction(data, "exp_hostile_engagement_cat", "leftright_pred_score")
 
 ```
 
-### Empathy
+## Empathy
 
 ```{r}
 plot_scatter(data, "empathy_pc", "text_length")
