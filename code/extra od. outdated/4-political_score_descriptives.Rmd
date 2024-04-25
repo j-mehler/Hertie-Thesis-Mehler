@@ -24,6 +24,7 @@ library(tidyverse)
 library(descr)
 library(ggplot2)
 library(here)
+library(GGally)
 
 # read in combined final dataset
 data <- read_csv(here("data/data_combined.csv"))
@@ -96,5 +97,40 @@ for (i in 1:nrow(highest_scores)) {
   cat("# Leftright Value:", highest_scores$leftright[i], "\n",
       "Open Hate Definition:", highest_scores$hate_definition[i], "\n\n")
 }
+```
+
+
+# Feature Importance
+
+```{r}
+library(knitr)
+library(kableExtra)
+
+coefficients <- read_csv(here("data/coefficients.csv"))
+
+# Create table
+styled_table <- kable(coefficients, format = "html", caption = "Coefficients of Predictor Variables", digits = 3) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 12) %>%
+  column_spec(1, bold = FALSE, color = "black")
+
+# Print the table
+styled_table
+
+```
+
+
+# Difference of Prediction 
+
+```{r}
+leftright_data <- data %>% select(leftright, leftright_pred_score, academic_status)
+
+p <- ggpairs(leftright_data,  # Data frame
+       # columns = indicators, # Columns
+        aes(color = academic_status,  # Color by group
+            alpha = 0.5),
+        upper = list(continuous = wrap("cor", size = 2.7)
+        ))
+
+p
 ```
 

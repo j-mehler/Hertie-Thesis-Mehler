@@ -2,26 +2,28 @@
 
 # read in data
 data_academic_status <- read_csv("data/academic_status.csv")
-data_controls <- read_csv("data/controls.csv")  
+data_controls <- read_csv("data/all_controls.csv")  
 data_text_length <- read_csv("data/text_length.csv")
+
 data_readability_score <- read_csv("data/readability.csv")
+data_readability_score <- data_readability_score %>% select(-hate_definition)
+
 data_cluster <- read_csv("data/cluster.csv")
-data_political_score <- read_csv("data/political_score.csv")
+data_pred_error <- read_csv("data/leftright_pred_error.csv")
+
+# to extract country and language variables
+data_clean <- read_csv("data/data_clean.csv")
+additional_data <- data_clean %>% select(ResponseId, country, Q_Language)
 
 
 # join datasets (inner join with ResponseId)
-data <- inner_join(data_academic_status, data_controls, by = "ResponseId", copy = FALSE)
-data <- inner_join(data, data_text_length, by = "ResponseId", copy = FALSE)
-data <- inner_join(data, data_readability_score, by = "ResponseId", copy = FALSE) %>% select(-hate_definition.y)
-data <- inner_join(data, data_cluster, by = "ResponseId", copy = FALSE)
-data <- inner_join(data, data_political_score, by = "ResponseId", copy = FALSE)
+data <- inner_join(data_academic_status, data_controls, by = "ResponseId")
+data <- left_join(data_text_length, data, by = "ResponseId")
+data <- left_join(data_readability_score, data, by = "ResponseId")
+data <- left_join(data_cluster, data, by = "ResponseId")
+data <- inner_join(data_pred_error, data, by = "ResponseId")
+data <- left_join(data, additional_data, by = "ResponseId")
 
-# fix colnames
-data <- data %>% 
-  mutate(hate_definition = hate_definition.x,
-         total_minutes = total_minutes.x,
-         total_minutes_log2 = total_minutes_log2.x) %>% 
-  select(-c(hate_definition.x, total_minutes.x, total_minutes_log2.x, total_minutes.y, total_minutes_log2.y))
 
 # save data
 data %>% write_csv("data/data_combined.csv")

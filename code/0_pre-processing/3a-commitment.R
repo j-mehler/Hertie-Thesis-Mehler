@@ -3,7 +3,6 @@
 # load reprocessed data
 data_all <- read_csv("data/data_clean.csv")
 
-
 # select time stamps for submission of each page
 time_data <- data_all %>% select(ResponseId, ends_with("Submit")) %>% select(-t_hate_definition_Page_Submit)
 
@@ -24,4 +23,4 @@ data_controls <- read_csv("data/controls.csv")
 data_controls <- inner_join(data_controls, time_data, by = "ResponseId")
 
 # overwrite file with control variables
-data_controls %>% write_csv("data/controls.csv")
+data_controls %>% write_csv("data/all_controls.csv")

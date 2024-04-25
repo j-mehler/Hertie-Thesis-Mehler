@@ -8,35 +8,34 @@
   
 # libraries
 library(tidyverse)
-library(here)
+library(tidymodels)
+library(broom)
 
 # read in survey data 
-data_survey <- read_csv(here("data/data_clean.csv"))
+data_survey <- read_csv("data/data_clean.csv")
 
 # and select only ID and leftright
 data_leftright <- data_survey %>% select(ResponseId, leftright) %>% filter(!is.na(leftright))
 
 # read in classification data
-data_classification <- read_csv(here("data/batches.csv")) 
+data_classification <- read_csv("data/batches.csv")
 
 # and select variables of interest: ResponseID and Boolean Variables.
 data_features <- data_classification %>% 
-  select(-Input.country, -Input.hate_definition, -ends_with("open"), -Answer.flag_comments) %>% 
+  select(-Input.country, -Input.hate_definition, -ends_with("open"), -Answer.flag_comments, -Answer.flag.flag) %>% 
   mutate(ResponseId = Input.ResponseId) %>% # align variable name with other dataset
   select(-Input.ResponseId) # remove old row
 
 # perform inner join to combine leftright with the classification features
 data <- inner_join(data_leftright, data_features, by = "ResponseId")
-data %>% write_csv("data/data_pol_score.csv")
+#data %>% write_csv("data/data_pol_score.csv")
 
 
-# Train and evaluate a linear model
-
-library(tidymodels)
+#### Train and evaluate a linear model ####
 
 # split the dataset
 set.seed(123) # For reproducibility
-data_split <- initial_split(data, prop = 0.7)
+data_split <- initial_split(data, prop = 0.3)
 train_data <- training(data_split) %>% select(-ResponseId)
 test_data  <- testing(data_split)
 
@@ -48,6 +47,14 @@ model_spec <- linear_reg() %>%
 # fit the model
 model_fit <- model_spec %>% 
   fit(leftright ~ ., data = train_data)
+
+# Extract coefficients and create a dataframe to look at feature importance
+coefficients_df <- tidy(model_fit) %>% 
+  select(term, estimate) %>%
+  filter(term != "(Intercept)") %>%   # remove the intercept
+  arrange(estimate)
+
+coefficients_df %>% write_csv("data/coefficients.csv")
 
 # predict leftright on the test data
 predictions <- predict(model_fit, new_data = test_data) %>% 
@@ -78,6 +85,6 @@ train_data <- training(data_split) %>% select(ResponseId, leftright) %>% mutate(
 data_scores <- rbind(data_scores, train_data)
 
 # save data
-data_scores %>% write_csv(here("data/political_score.csv"))
+data_scores %>% write_csv("data/political_score.csv")
 
 

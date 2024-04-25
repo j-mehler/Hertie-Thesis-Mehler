@@ -20,18 +20,10 @@ knitr::opts_chunk$set(echo = FALSE)
 ```{r}
 library(tidyverse)
 library(ggplot2)
+library(here)
 
 # load reprocessed data
-data_all <- read_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_clean2.csv")
-
-# filter: for now only English answers (because the others are not translated yet)
-data_en <- data_all %>% filter(Q_Language == "EN")
-
-# we are left with three countries: usa (2945), phleng (837), nig (464)
-data_en %>% select(country) %>% unique()
-
-# select variables of interest
-data <- data_en %>% select(open_hatedefinition, gender, age_cat, minority_cat, academic_status)
+data <- read_csv(here("data/batches.csv"))
 ```
 
 
@@ -40,7 +32,7 @@ data <- data_en %>% select(open_hatedefinition, gender, age_cat, minority_cat, a
 ```{r}
 # Calculate Word Counts
 data_wordcount <- data %>%
-  mutate(word_count_hatedef = strsplit(as.character(open_hatedefinition), " ") %>%
+  mutate(word_count_hatedef = strsplit(as.character(hate_definition), " ") %>%
            sapply(length))
 
 # Create Distribution Plot for open_hatedefinition
@@ -63,19 +55,19 @@ Almost all answers have a length below 100.
 ## Text length in characters
 
 ```{r}
-data_text_length <- read_csv("/Users/Jo/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/text_length.csv")
+data_text_length <- read_csv(here("data/text_length.csv"))
 
 data_text_length %>% 
   ggplot(aes(x = text_length)) +
   geom_histogram(fill = "pink", color = "black") +
-  labs(title = "Character Count Distribution: open_hatedefinition (log2)",
+  labs(title = "Character Count Distribution: open_hatedefinition",
        x = "Character Count",
        y = "Frequency")
 
 data_text_length %>% 
-  ggplot(aes(x = text_length_abs)) +
+  ggplot(aes(x = text_length_log2)) +
   geom_histogram(fill = "pink", color = "black") +
-  labs(title = "Character Count Distribution: open_hatedefinition (absolute values)",
+  labs(title = "Character Count Distribution: open_hatedefinition (log2)",
        x = "Character Count",
        y = "Frequency")
 ```

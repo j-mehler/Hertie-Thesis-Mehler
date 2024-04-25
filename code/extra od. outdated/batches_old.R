@@ -55,3 +55,21 @@ data_other_features %>% write_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-The
 data_scope %>% write_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_scope.csv")
 data_sender %>% write_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_sender.csv")
 data_target %>% write_csv("~/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler/data/data_target.csv")
+
+
+## Comparing Columns of same length  ####
+#
+## check column differences between batches and Batch 4
+## Get the column names for each dataset
+#columns_batches <- names(batches)
+#columns_Batch_4 <- names(Batch_4)
+#
+## Compare the column names to find differences
+#differences <- columns_batches != columns_Batch_4
+#
+## Display the positions and names of the differing columns
+#differing_columns <- data.frame(Position = which(differences),
+#                                Batch_1_Columns = columns_batches[differences],
+#                                Batch_2_Columns = columns_Batch_4[differences])
+#
+#print(differing_columns)

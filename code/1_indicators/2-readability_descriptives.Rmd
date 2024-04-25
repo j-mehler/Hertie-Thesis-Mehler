@@ -1,5 +1,5 @@
 ---
-title: "readability_descriptives"
+title: "Readability Descriptives"
 author: "Johanna Mehler"
 date: "`r Sys.Date()`"
 output: 
@@ -28,7 +28,7 @@ library(here)
 # pure readability scores. No analysis with oterh parameters
 readability_data <- read_csv(here("data/readability_all_scores.csv"))
 
-readability_scores <- readability_data %>% select(-Input.ResponseId, -Input.hate_definition)
+readability_scores <- readability_data %>% select(-ResponseId, -hate_definition)
 ```
 
 # Check frequencies and distributions
@@ -69,7 +69,7 @@ lowest_scores <- readability_data %>%
   slice(1:15)
 
 # Print the texts corresponding to the lowest scores
-print(lowest_scores$Input.hate_definition)
+print(lowest_scores$hate_definition)
 ```
 
 ## Highest average scores
@@ -81,6 +81,6 @@ highest_scores <- readability_data %>%
   slice(1:15)
 
 # Print the texts corresponding to the highest scores
-print(highest_scores$Input.hate_definition)
+print(highest_scores$hate_definition)
 ```
 

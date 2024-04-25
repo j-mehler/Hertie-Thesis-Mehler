@@ -35,21 +35,24 @@ theme_set(theme_minimal())
 # load data
 data <- read_csv(here("data/data_numeric_filtered.csv"))
 
+# select only annotation data
+data <- data %>% select(-ResponseId, -hate_definition)
+
 # remove columns with only zeros
-data <- data %>% select_if(~any(. != 0)) 
+#data <- data %>% select_if(~any(. != 0)) 
 
-# remove any rows with only zeros
-
-# create function 
-not_zero <- function(x) {
-  x == 0
-}
-
-# create vector with column names
-all_columns <- data %>% colnames()
-
-# filter out any columns that are only zero
-data <- data %>% filter(!if_all(all_columns, not_zero))
+## remove any rows with only zeros
+#
+## create function 
+#not_zero <- function(x) {
+#  x == 0
+#}
+#
+## create vector with column names
+#all_columns <- data %>% colnames()
+#
+## filter out any columns that are only zero
+#data <- data %>% filter(!if_all(all_columns, not_zero))
 ```
 
 # PAM clustering
@@ -81,7 +84,11 @@ fviz_nbclust(data, FUN = pam, method = "wss", k.max = 15)
 # PAM Method with 4 clusters
 
 ```{r}
+# Set seed for reproducibility
+set.seed(12345)
+
 # The PAM algorithm is based on the search for k representative objects or medoids among the observations of the data set.
+
 optimal_k <- 4 
 pam_result <- pam(data, k = optimal_k, metric = "euclidean")
 
@@ -207,7 +214,7 @@ main_items <- function(x) {
 main_items(cluster_1)
 ```
 
-Main components for cluster 1 are "attack (75%) against a person (72%)"
+
 
 ***Cluster 2***
 
@@ -215,7 +222,6 @@ Main components for cluster 1 are "attack (75%) against a person (72%)"
 main_items(cluster_2)
 ```
 
-Main components for cluster 2 are "offensive (17%), hateful (27%), dehumanization (20%), content  against a group of people (57%) because of their race (20%)"
 
 
 ***Cluster 3***
@@ -225,7 +231,6 @@ main_items(cluster_3)
 ```
 
 
-Cluster 3 is about nonsense (100%) and other features from the section "other", mostly deniying existence, importance, or any objective characteristics of hate speech.
 
 
 ***Cluster 4***
@@ -234,9 +239,7 @@ Cluster 3 is about nonsense (100%) and other features from the section "other", 
 main_items(cluster_4)
 ```
 
-Cluster 4 has a focus on incitement (100%), as well as a description of person (32%) AND people (63%) as scope of hate speech. 
 
--> Would be interesting to look at some text examples of these definitions compared to the other clusters.
 
 ### Visualize Cluster
 

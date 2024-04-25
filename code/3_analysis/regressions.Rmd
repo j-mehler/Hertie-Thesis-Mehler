@@ -76,7 +76,7 @@ table1(~ educ_cat + gender + age_cat + polinterest + minority_cat, data = data_a
 
 ```{r}
 # Linear regression model with all controls
-model_text_length <- lm(text_length ~ academic_status + gender + age_cat + minority_cat + polinterest_cat_3 + empathy_pc + exp_hate_speech + exp_hostile_engagement, data = data)
+model_text_length <- lm(text_length_log2 ~ academic_status + gender + age_cat + minority_cat + polinterest_cat_3 + empathy_pc + exp_hate_speech + exp_hostile_engagement, data = data)
 
 summary(model_text_length)
 ```
