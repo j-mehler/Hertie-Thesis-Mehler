@@ -1,0 +1,157 @@
+---
+title: " Descriptives"
+author: "Johanna Mehler"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true               # Enable Table of Contents
+    toc_float:              # Make the TOC floating
+      collapsed: false      # Do not collapse TOC by default
+      smooth_scroll: true   # Smooth scrolling to sections
+    number_sections: true   # Numbered sections
+    theme: readable         # Use a predefined theme for styling (optional)
+    highlight: tango        # Syntax highlighting style (optional)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Preparation
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(here)
+
+data_combined <- read_csv(here("data/data_combined.csv"))
+
+# select variables of interest (edu + controls in categories)
+data <- data_combined %>% select(academic_status, country, Q_Language, educ_cat, gender, age_cat, minority_cat, polinterest_cat_3, empathy_pc_cat, exp_hate_speech_cat, exp_hostile_engagement_cat, commitment_cat)
+```
+
+
+# Academic Status
+
+## Subset data in academics and non-academics
+
+```{r}
+# Filter rows where open_hatedefinition is academic vs. non
+academics <- data %>% 
+  filter(academic_status == "academic") 
+
+non_academics <- data %>% 
+  filter(academic_status == "non-academic") 
+
+# Create vector of variable names
+variables <- data %>% select(-academic_status) %>% colnames()
+
+academics %>% count()
+non_academics %>% count()
+```
+
+## Calculate Percentages of each value in each group
+
+```{r}
+# group "academic"
+
+# convert to long format
+academics_long <- academics %>% 
+  pivot_longer(cols = all_of(variables), names_to = "variable", values_to = "value")
+
+# summarize counts
+academics_summary <- academics_long %>% group_by(variable, value) %>% count()
+
+# calculate total of each variable
+total <- academics %>% nrow()
+
+# add total and share of each value, and dataset variable "academic"
+academics_summary <- academics_summary %>% mutate(
+  total = total,
+  share = n/total,
+  dataset = "Academics"
+)
+
+# group "non academic"
+
+# convert to long format
+non_academics_long <- non_academics %>% 
+  pivot_longer(cols = all_of(variables), names_to = "variable", values_to = "value")
+
+# summarize counts
+non_academics_summary <- non_academics_long %>% group_by(variable, value) %>% count()
+
+# calculate total of each variable
+total <- non_academics %>% nrow()
+
+# add total and share of each value, and dataset variable "non academic"
+non_academics_summary <- non_academics_summary %>% mutate(
+  total = total,
+  share = n/total,
+  dataset = "non-academic"
+)
+
+# combine dataset summaries
+academic_status_sociodemographics <- rbind(academics_summary, non_academics_summary)
+```
+
+## Create plots
+
+```{r, fig.width=9, fig.height=6}
+# plot with geom_point
+academic_status_sociodemographics %>% 
+  ggplot(aes(x = share, y = value)) +
+  geom_point(aes(color = dataset), stat = "identity") + # Use geom_bar to create a bar plot
+  geom_line(aes(group = value), color = "black", show.legend = FALSE) +
+  facet_wrap(~variable, scales = "free", ncol = 3) + # Separate plots for each Region
+  labs(title = "Sociodemographics by Academic Status", x = "Share", y = "Value")
+```
+
+Are these differences significant? 
+
+```{r, fig.width=8, fig.height=8}
+# plot without line but with confident intervals
+
+# Add standard error and confidence interval bounds to the dataframe
+academic_status_sociodemographics <- academic_status_sociodemographics %>%
+  mutate(
+    share = as.numeric(share), # Ensure that 'share' is numeric
+    SE = sqrt(share * (1 - share) / total), # Standard error of the proportion
+    z_value = qnorm(0.975), # z-value for a 95% CI
+    lower = share - z_value * SE, # Lower bound of the CI
+    upper = share + z_value * SE # Upper bound of the CI
+  )
+
+# create the plot with point ranges
+ggplot(academic_status_sociodemographics, aes(x = factor(value), y = share, color = dataset)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper), position = position_dodge(width = 0.1), fatten = 1) +
+  facet_wrap(~variable, scales = "free", ncol = 3) +
+  labs(title = "Sociodemographics by Academic Status",
+       x = "Value", y = "Share") +
+  scale_x_discrete(na.translate = TRUE) + # remove NA values from the x-axis
+  scale_y_continuous(limits = c(0, 0.8)) +
+  coord_flip()
+```
+
+
+## Bar plot
+
+```{r, fig.width=9, fig.height=6}
+# bar plot
+academic_status_sociodemographics %>%
+  ggplot(aes(x = value, y = share, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.75)) + 
+  geom_errorbar(aes(ymin = lower, ymax = upper, group = dataset),
+                width = 0.3,                    # Width of the horizontal lines at the ends of error bars
+                position = position_dodge(0.75), # Match the position_dodge width with geom_bar
+                color = "black",                 # Color of the error bars
+                size = 0.5) +                   # Size of the error bars, making them narrow
+  facet_wrap(~variable, scales = "free", ncol = 3) +
+  labs(title = "academic_status Sociodemographics", x = "Value", y = "Share") +
+  scale_x_discrete(na.translate = TRUE) +
+  coord_flip()
+
+```
+
+
+

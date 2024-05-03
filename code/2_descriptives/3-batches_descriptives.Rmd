@@ -1,0 +1,297 @@
+---
+title: "Batches Descriptives"
+author: "Johanna Mehler"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true               # Enable Table of Contents
+    toc_float:              # Make the TOC floating
+      collapsed: false      # Do not collapse TOC by default
+      smooth_scroll: true   # Smooth scrolling to sections
+    number_sections: true   # Numbered sections
+    theme: readable         # Use a predefined theme for styling (optional)
+    highlight: tango        # Syntax highlighting style (optional)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Libraries
+
+```{r, include=FALSE}
+library(tidyverse)
+library(descr) 
+library(ggplot2)
+library(descr)
+library(here)
+library(scales)
+
+theme_set(theme_minimal())
+```
+
+## Read in Data
+
+```{r}
+# read in numeric data
+data_numeric_filtered <- read_csv(here("data/data_numeric_filtered.csv"))
+data_content <- read_csv(here("data/data_content.csv"))
+data_other_features <- read_csv(here("data/data_other_features.csv"))
+data_scope <- read_csv(here("data/data_scope.csv"))
+data_sender <- read_csv(here("data/data_sender.csv"))
+data_target <- read_csv(here("data/data_target.csv"))
+```
+
+# Explore Distributions
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count <- colSums(data_numeric_filtered == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_df <- data.frame(variable = names(ones_count), count = ones_count) 
+
+# Order the variables by count in descending order
+ones_count_df$variable <- reorder(ones_count_df$variable, -ones_count_df$count)
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_df, aes(x = variable, y = count)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Counts per Classification Item", x = "Item", y = "Count")
+
+# save figure
+ggsave("2-03-item_counts.png", path = here("figures"))
+```
+
+```{r}
+# Overall patterns: Count the frequency of TRUE values for each Answer.* column
+overall_patterns <- colSums(data_numeric_filtered, na.rm = TRUE) # Assuming the first column is `Input.country`
+overall_patterns_sorted <- sort(overall_patterns, decreasing = TRUE)
+
+# Display the most common properties/content
+head(overall_patterns_sorted, 15)
+```
+
+
+## Content items
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_content <- colSums(data_content == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_content_df <- data.frame(variable = names(ones_count_content), count = ones_count_content) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_content_df, aes(x = reorder(variable, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Counts per Content Item", x = "Item", y = "Count")
+
+# save figure
+ggsave("2-03-content.png", path = here("figures"))
+```
+
+## Sender items
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_sender <- colSums(data_sender == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_sender_df <- data.frame(variable = names(ones_count_sender), count = ones_count_sender) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_sender_df, aes(x = reorder(variable, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Counts per Sender Item", x = "Item", y = "Count")
+
+# save figure
+ggsave("2-03-sender.png", path = here("figures"))
+```
+
+## Target items
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_target <- colSums(data_target == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_target_df <- data.frame(variable = names(ones_count_target), count = ones_count_target) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_target_df, aes(x = reorder(variable, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Counts per Target Item", x = "Item", y = "Count")
+
+# save figure
+ggsave("2-03-target.png", path = here("figures"))
+```
+
+## Other Features of Statement
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_other <- colSums(data_other_features == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_data_other <- data.frame(variable = names(ones_count_other), count = ones_count_other) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_data_other, aes(x = reorder(variable, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Item Count for Other Features", x = "Variable", y = "Count")
+
+# save figure
+ggsave("2-03-other.png", path = here("figures"))
+```
+
+## Scope
+
+```{r}
+# Count the number of 1s in each column of the dataframe
+ones_count_scope <- colSums(data_scope == 1)
+
+# Convert the counts to a dataframe for plotting
+ones_count_scope <- data.frame(variable = names(ones_count_scope), count = ones_count_scope) 
+
+# Create a bar plot with each column's number of 1s
+ggplot(ones_count_scope, aes(x = reorder(variable, -count), y = count)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + # Rotate x-axis labels for better readability
+  labs(title = "Counts per Scope Item", x = "Item", y = "Count")
+
+# save figure
+ggsave("2-03-scope.png", path = here("figures"))
+```
+
+# Items per person
+
+## Absolute amounts
+
+```{r}
+item_counts <- data_numeric_filtered %>% 
+  # sum for each row
+  mutate(TotalTrues = rowSums(across(everything()))) %>%
+  # Arrange the data from most to fewest TRUEs
+  arrange(desc(TotalTrues)) 
+
+freq(item_counts$TotalTrues)
+```
+
+## Shares
+
+```{r}
+item_counts <- data_numeric_filtered %>% 
+  # sum for each row
+  mutate(TotalTrues = rowSums(across(everything()))) %>%
+  # Arrange the data from most to fewest TRUEs
+  select(TotalTrues) %>% 
+  group_by(TotalTrues) %>% 
+  count() 
+
+item_counts <- item_counts %>%  
+  mutate(Share = n/sum(item_counts$n)) %>% 
+  rename(Item_counts = TotalTrues)
+
+# bar plot
+ggplot(item_counts, aes(x = Item_counts, y = Share)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  scale_x_continuous(breaks = 1:13) +  # Ensuring each number from 1 to 13 is labeled
+  scale_y_continuous(labels = percent_format()) +  # Formatting y as percentages
+  labs(title = "Number of Items per Respondent", x = "Item Count", y = "Share (%)")
+
+# save figure
+ggsave("2-03-item_count.png", path = here("figures"))
+```
+
+
+# Item Distribution by Academic Status 
+
+## Absolute numbers
+
+```{r}
+# read in classification data and academic status data
+batches <- read_csv(here("data/batches.csv"))
+academic_status <- read_csv(here("data/academic_status.csv"))
+
+# preprocess to prepare join
+batches <- batches %>% select(-hate_definition)
+
+# join datasets
+data <- inner_join(batches, academic_status, by = "ResponseId") %>% 
+  select(-ends_with("open"), -ends_with("comments"), -c(ResponseId, educ_cat)) %>% filter(!is.na(academic_status))
+
+# check group balance
+data %>% group_by(academic_status) %>% count()
+
+# pivot longer
+df_long <- data %>%
+  pivot_longer(cols = starts_with("Answer"), names_to = "Item", values_to = "Value") %>%
+  group_by(Item, academic_status) %>%
+  summarize(Count = sum(Value, na.rm = TRUE), .groups = 'drop')
+
+# Spread the data back to wide format for the desired table layout
+df_wide <- df_long %>%
+  pivot_wider(names_from = academic_status, values_from = Count)
+
+# Replace NA with 0 if any
+df_wide[is.na(df_wide)] <- 0
+
+# Display the table
+df_wide <- df_wide %>% arrange(desc(academic)) %>% rename(non_academic = `non-academic`)
+
+df_wide
+```
+
+
+Make a nice table
+
+```{r}
+library(formattable)
+
+formattable(df_wide)
+```
+
+## Shares
+
+```{r}
+num_academics <- data %>% filter(academic_status == "academic") %>% nrow()
+num_non_academics <- data %>% filter(academic_status == "non-academic") %>% nrow()
+
+# Summarize and calculate shares
+df_shares <- df_wide %>% 
+  mutate(Academic_share = round(academic/num_academics*100, 1),
+         Non_academic_share = round(non_academic/num_non_academics*100, 1)) %>% 
+  select(Item, academic, Academic_share, non_academic, Non_academic_share)
+
+df_shares
+```
+
+"Out of all academics, 40% have the item scope people in their definition."
+
+
+## Example Definitions by Cluster
+
+```{r}
+data <- read_csv(here("data/data_combined.csv"))
+
+# Set options to print more or complete characters of text strings
+options(width = 10000)
+
+# Sample 5 random entries for each cluster
+sampled_data <- data %>%
+  group_by(cluster) %>%
+  sample_n(size = 5) %>%
+  ungroup() %>% 
+  select(cluster, hate_definition)
+
+# Display the sampled data
+print(sampled_data, width = 10000)
+```
+
+

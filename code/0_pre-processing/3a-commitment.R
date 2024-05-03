@@ -9,10 +9,15 @@ time_data <- data_all %>% select(ResponseId, ends_with("Submit")) %>% select(-t_
 # aggregate time stamps for each observation
 time_data <- time_data %>% 
   mutate(total_minutes = round(rowSums(select(., -ResponseId), na.rm = TRUE)/60, 1),
-         total_minutes_log2 = round(log2(rowSums(select(., -ResponseId), na.rm = TRUE)/60), 2))
+         total_minutes_log2 = round(log2(rowSums(select(., -ResponseId), na.rm = TRUE)/60), 2),
+         commitment_cat = ifelse(total_minutes_log2 >= mean(total_minutes_log2), "Above average", "Below average"))
 
 # drop time stamp variables
-time_data <- time_data %>% select(ResponseId, total_minutes, total_minutes_log2)
+time_data <- time_data %>% 
+  select(ResponseId, total_minutes, total_minutes_log2, commitment_cat) %>% 
+  rename(
+    commitment = total_minutes, 
+    commitment_log2 = total_minutes_log2)
 
 #### add to existing control data ####
 

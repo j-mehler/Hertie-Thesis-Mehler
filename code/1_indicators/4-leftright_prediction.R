@@ -32,7 +32,7 @@ data <- left_join(data_features, data_leftright, by = "ResponseId")
 
 # split the dataset
 set.seed(123) # For reproducibility
-data_split <- initial_split(data, prop = 0.3)
+data_split <- initial_split(data, prop = 0.2)
 train_data <- training(data_split) %>% select(-ResponseId)
 test_data  <- testing(data_split)
 
@@ -80,6 +80,15 @@ train_data <- training(data_split) %>% select(ResponseId, leftright) %>% mutate(
 
 # combine test and training data to reach original sample size
 data_scores <- rbind(data_scores, train_data)
+
+# add leftright categorical variable
+data_scores <- data_scores %>% mutate(
+  leftright_cat = case_when(
+    leftright <= 4 ~ "liberal/left",
+    leftright >= 5 & leftright <= 7 ~ "moderate/center",
+    leftright >= 8 ~ "conservative/right"
+  )
+)
 
 # save data
 data_scores %>% write_csv("data/leftright_pred_error.csv")

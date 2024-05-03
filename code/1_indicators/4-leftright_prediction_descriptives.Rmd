@@ -38,7 +38,7 @@ pol_error <- data %>% select(leftright_pred_error)
 
 ## Distribution of the "real" variable leftright in my samples 
 
-Distribution of my sample (n = 1133), Distribution of full sample (n > 19,000)
+Distribution of my sample (n = 1079), Distribution of full sample (n > 19,000)
 
 
 ```{r}
@@ -56,7 +56,7 @@ freq(data_all$leftright)
 descr(pol_error)
 ```
 
-The mean error when predicting the leftright orientation was around 2.
+
 
 ```{r}
 # Density of leftright_pred_error
@@ -69,33 +69,33 @@ ggplot(pol_error, aes(x = leftright_pred_error)) +
   theme(legend.title = element_blank()) # Hide the legend title
 ```
 
-## Lowest average errors
+## Highest errors
 
 ```{r}
 # Sort the dataset by Average_Grade_Level in ascending order to get the 15 lowest errors
-lowest_errors <- data %>%
+highest_errors <- data %>%
   arrange(leftright_pred_error) %>%
   slice(1:15)
 
 # Print Definition and leftright value
-for (i in 1:nrow(lowest_errors)) {
-  cat("# Leftright Value:", lowest_errors$leftright[i], "\n",
-      "Open Hate Definition:", lowest_errors$hate_definition[i], "\n\n")
+for (i in 1:nrow(highest_errors)) {
+  cat("# Leftright Value:", highest_errors$leftright[i], "\n",
+      "Open Hate Definition:", highest_errors$hate_definition[i], "\n\n")
 }
 ```
 
-## Highest average errors
+## Lowest errors
 
 ```{r}
 # Sort the dataset by Average_Grade_Level in descending order to get the 15 highest errors
-highest_errors <- data %>%
+lowest_errors <- data %>%
   arrange(desc(leftright_pred_error)) %>%
   slice(1:15)
 
 # Print the texts corresponding to the highest errors
-for (i in 1:nrow(highest_errors)) {
-  cat("# Leftright Value:", highest_errors$leftright[i], "\n",
-      "Open Hate Definition:", highest_errors$hate_definition[i], "\n\n")
+for (i in 1:nrow(lowest_errors)) {
+  cat("# Leftright Value:", lowest_errors$leftright[i], "\n",
+      "Open Hate Definition:", lowest_errors$hate_definition[i], "\n\n")
 }
 ```
 
@@ -119,10 +119,10 @@ styled_table
 ```
 
 
-# Difference of Prediction 
+# Difference of Prediction and real Values 
 
 ```{r}
-leftright_data <- data %>% select(leftright, leftright_pred_error, academic_status)
+leftright_data <- data %>% select(leftright, leftright_pred_error, academic_status) %>% drop_na()
 
 p <- ggpairs(leftright_data,  # Data frame
        # columns = indicators, # Columns

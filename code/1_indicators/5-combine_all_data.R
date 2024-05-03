@@ -1,5 +1,7 @@
 # join all datasets (preprocessed variables and created indicators) ----
 
+library(tidyverse)
+
 # read in data
 data_academic_status <- read_csv("data/academic_status.csv")
 data_controls <- read_csv("data/all_controls.csv")  

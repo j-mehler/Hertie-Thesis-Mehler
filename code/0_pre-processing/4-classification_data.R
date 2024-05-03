@@ -33,6 +33,7 @@ zero <- function(x) {
 num_columns <- data_numeric_filtered %>% 
   select(-Input.ResponseId, -Input.hate_definition) %>% 
   colnames()
+
 # filter out any rows that are only zero (n = 1549)
 data_numeric_filtered <- data_numeric_filtered %>% filter(!if_all(num_columns, zero))
 
@@ -63,24 +64,28 @@ data_numeric_filtered %>% write_csv("data/batches.csv")
 # Replace 'Answer.' with '' for all column names starting with 'Answer.'
 names(data_numeric_filtered) <- sub("^Answer\\.", "", names(data_numeric_filtered))
 
+# save data only as numeric dataset
+data_num <- data_numeric_filtered %>% ungroup() %>% select(-ResponseId, -hate_definition)
+
+data_num %>% write_csv("data/data_numeric_filtered.csv")
+
 # create subsets for each category
-data_content <- data_numeric_filtered %>% select(starts_with("content")) # 15
+data_content <- data_num %>% select(starts_with("content")) # 15
 names(data_content) <- sub("^content\\.", "", names(data_content))
 
-data_other_features <- data_numeric_filtered %>% select(starts_with("other")) # 7
+data_other_features <- data_num %>% select(starts_with("other")) # 7
 names(data_other_features) <- sub("^other\\.", "", names(data_other_features))
 
-data_scope <- data_numeric_filtered %>% select(starts_with("scope")) # 2
+data_scope <- data_num %>% select(starts_with("scope")) # 2
 names(data_scope) <- sub("^scope\\.", "", names(data_scope))
 
-data_sender <- data_numeric_filtered %>% select(starts_with("sender")) # 5
+data_sender <- data_num %>% select(starts_with("sender")) # 5
 names(data_sender) <- sub("^sender\\.", "", names(data_sender))
 
-data_target <- data_numeric_filtered %>% select(starts_with("target")) # 18
+data_target <- data_num %>% select(starts_with("target")) # 18
 names(data_target) <- sub("^target\\.", "", names(data_target))
 
 # Saving all new numeric subsets
-data_numeric_filtered %>% write_csv("data/data_numeric_filtered.csv")
 data_content %>% write_csv("data/data_content.csv")
 data_other_features %>% write_csv("data/data_other_features.csv")
 data_scope %>% write_csv("data/data_scope.csv")

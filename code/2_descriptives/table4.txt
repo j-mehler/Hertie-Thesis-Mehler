@@ -1,0 +1,5 @@
+
+Descriptive statistics/selected variables
+=================================
+Statistic N Mean St. Dev. Min Max
+=================================

@@ -46,7 +46,7 @@ cluster_data <-
   cbind(data, cluster_raw) %>% # combine data
   select(ResponseId, cluster) %>% # select only cluster column and ResponseId
   mutate(cluster = case_when( # change cluster names to characters
-    cluster == 1 ~ "Content-based",
+    cluster == 1 ~ "Intent-based",
     cluster == 2 ~ "Harms-based",
     cluster == 3 ~ "Denying/Nonsense",
     cluster == 4 ~ "Harms-based narrow" 

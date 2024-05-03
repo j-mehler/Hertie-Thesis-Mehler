@@ -11,7 +11,7 @@
 
 <meta name="author" content="Johanna Mehler" />
 
-<meta name="date" content="2024-04-25" />
+<meta name="date" content="2024-04-30" />
 
 <title>Clustering</title>
 
@@ -1470,7 +1470,7 @@ font-size: 0.95em;
 
 <h1 class="title toc-ignore">Clustering</h1>
 <h4 class="author">Johanna Mehler</h4>
-<h4 class="date">2024-04-25</h4>
+<h4 class="date">2024-04-30</h4>
 
 </div>
 
@@ -1490,10 +1490,9 @@ font-size: 0.95em;
 ## here() starts at /Users/Jo/OneDrive/1_Hertie Studies/Thesis/Hertie-Thesis-Mehler
 ## 
 ## Welcome! Want to learn more? See two factoextra-related books at https://goo.gl/ve3WBa</code></pre>
-<pre><code>## Rows: 1079 Columns: 48
+<pre><code>## Rows: 1079 Columns: 46
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
-## chr  (2): ResponseId, hate_definition
 ## dbl (46): content.attack, content.causingharm, content.dehumanization, conte...
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -1581,7 +1580,7 @@ items and variance within each cluster</h3>
 <div id="most-important-items-in-each-cluster" class="section level3" number="3.2.4">
 <h3><span class="header-section-number">3.2.4</span> Most important
 items in each cluster</h3>
-<p><strong><em>Cluster 1</em></strong></p>
+<p><strong><em>Cluster 1 “Intent-based”</em></strong></p>
 <pre><code>## # A tibble: 8 × 3
 ##   cluster item                    mean
 ##     &lt;int&gt; &lt;chr&gt;                  &lt;dbl&gt;
@@ -1593,7 +1592,7 @@ items in each cluster</h3>
 ## 6       1 content.dehumanization 0.189
 ## 7       1 target.religion        0.173
 ## 8       1 content.offensive      0.144</code></pre>
-<p><strong><em>Cluster 2</em></strong></p>
+<p><strong><em>Cluster 2 “Harms-based”</em></strong></p>
 <pre><code>## # A tibble: 8 × 3
 ##   cluster item                    mean
 ##     &lt;int&gt; &lt;chr&gt;                  &lt;dbl&gt;
@@ -1605,7 +1604,7 @@ items in each cluster</h3>
 ## 6       2 content.incivility     0.117
 ## 7       2 content.offensive      0.111
 ## 8       2 content.dehumanization 0.106</code></pre>
-<p><strong><em>Cluster 3</em></strong></p>
+<p><strong><em>Cluster 3 “Denying/Nonsense”</em></strong></p>
 <pre><code>## # A tibble: 8 × 3
 ##   cluster item                   mean
 ##     &lt;int&gt; &lt;chr&gt;                 &lt;dbl&gt;
@@ -1617,7 +1616,7 @@ items in each cluster</h3>
 ## 6       3 content.opinion     0.0160 
 ## 7       3 other.example       0.0106 
 ## 8       3 content.causingharm 0.00532</code></pre>
-<p><strong><em>Cluster 4</em></strong></p>
+<p><strong><em>Cluster 4 “Harms-based narrow”</em></strong></p>
 <pre><code>## # A tibble: 8 × 3
 ##   cluster item                    mean
 ##     &lt;int&gt; &lt;chr&gt;                  &lt;dbl&gt;
