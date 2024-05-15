@@ -152,7 +152,7 @@ INTERPRETATION
 # dataframe containing only boolean variables
 cor_matrix <- cor(data_numeric_filtered, method = "pearson")
 
-## Create a PNG device using Cairo
+# Create a PNG device using Cairo
 #CairoPNG(filename = here("figures", "2-04-item_correlations.png"))
 
 cor_matrix %>% corrplot(method = "color", type = "lower", tl.cex = 0.5, tl.col = "black")
@@ -169,6 +169,9 @@ cor_matrix %>% corrplot(method = "color", type = "lower", tl.cex = 0.5, tl.col =
 # content
 names(data_content) <- sub("^content\\.", "", names(data_content))
 data_content %>% cor(method = "pearson") %>% corrplot(method = "color", type = "lower", tl.col = "black")
+
+# save figure
+ggsave("2-04-corr-content.png", path = here("figures"))
 ```
 
 ### Target

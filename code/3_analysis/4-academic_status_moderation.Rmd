@@ -26,6 +26,7 @@ library(corrplot)
 library(descr)
 library(sjPlot)
 library(nnet)
+library(effects)
 ```
 
 
@@ -47,6 +48,19 @@ data <- read_csv(here("data", "data_combined.csv"),
                    leftright_cat = col_factor(levels = c("liberal/left", "moderate/center", "conservative/right")),
                    commitment_cat = col_factor(levels = c("Below average", "Above average"))
                  ))
+
+# change value names that are too long to be displayed without line breaks
+data <- data %>% mutate(leftright_cat = recode(leftright_cat, 
+                          "liberal/left" = "liberal/\nleft", 
+                          "moderate/center" = "moderate/\ncenter", 
+                          "conservative/right" = "conservative/\nright"),
+                        exp_hate_speech_cat = recode(exp_hate_speech_cat,
+                          "Less experience" = "Less\nexperience", 
+                          "More experience" = "More\nexperience"),
+                        exp_hostile_engagement_cat = recode(exp_hostile_engagement_cat,
+                          "Less experience" = "Less\nexperience", 
+                          "More experience" = "More\nexperience")
+                        )
 
 # remove NA's in academic status and extreme outliers in readability and textlength (only one observation each)
 data <- data %>% filter(!is.na(academic_status), text_length < 2500, readability_score < 40)
@@ -116,19 +130,18 @@ multinom_model_interaction <- function(data, var1, var2) {
   MODEL <- multinom(formula_obj, data = data)
   
   # Use plot_model() to visualize the interaction
-  plot <- plot_model(MODEL, type = "pred", 
+  plot <- plot_model(MODEL, type = "eff", 
                      terms = c(var1, "academic_status"), 
                      title = paste("Predicted probabilities of", var2, "\nby", var1, "moderated by Academic Status", "\ncontrolled for Gender, Age and Survey Commitment"), 
                      colors = c("skyblue", "orange"), 
-                     axis.title = c(var1, "Probability"), 
+                     axis.title = c(var1, "Effect"), 
                      legend.title = "Academic Status",
                      ci.lvl = 0.95) +
     theme_bw() +
-    theme()
     coord_flip()
   
   # Adjusting the plot by redefining aesthetic mappings
-  plot + geom_point(aes(shape = factor(academic_status)), data = data)  # Map shapes to academic status
+#  plot + geom_point(aes(shape = factor(academic_status)), data = data)  # Map shapes to academic status
   #  scale_shape_manual(values = c(19, 17)) +  # Assign specific shapes
   
   # save plot
@@ -375,7 +388,7 @@ ggsave(filename = "3-4-exp_hostile_engagement_cat_by_text_length_log2.png", path
 
 ```{r}
 # Adjust y-range
-common_y_range <- c(10, 16) 
+common_y_range <- c(9, 16) 
 
 # 1
 polinterest_cat_3_by_readability_score <- plot_polinterest_cat_3_by_readability_score + 
@@ -445,7 +458,7 @@ ggsave(filename = "3-4-exp_hostile_engagement_cat_by_readability_score.png", plo
 
 ```{r}
 # Adjust y-range
-common_y_range <- c(0, 0.6) 
+common_y_range <- c(0, 0.55) 
 
 # 1
 polinterest_cat_3_by_cluster <- plot_polinterest_cat_3_by_cluster + 
@@ -457,8 +470,8 @@ polinterest_cat_3_by_cluster <- plot_polinterest_cat_3_by_cluster +
         legend.text = element_text(size = 12),
         legend.title = element_text(size = 14),
         plot.subtitle = element_text(size = 14)) +
-  ylim(common_y_range) +
-  ylab("") 
+  ylim(common_y_range) + 
+  ylab("") +
   xlab("")
 
 ggsave(filename = "3-4-polinterest_cat_3_by_cluster.png", plot = polinterest_cat_3_by_cluster, path = here("figures"), height = 3.5, width = 6)

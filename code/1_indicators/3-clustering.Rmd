@@ -73,6 +73,8 @@ The elbow method involves plotting the total within-cluster sum of squares (WSS)
 ```{r}
 # Finding the optimal number of clusters using the elbow method
 fviz_nbclust(data, FUN = pam, method = "wss", k.max = 15)
+
+ggsave("elbow.png", path = here("figures"), height = 4, width = 4)
 ```
 
 4 or 6 seems to be good

@@ -169,7 +169,7 @@ print(combined_summary)
 
 ```
 
-## Plot with Confidence Intervals
+## Plot Missingness with Confidence Intervals
 
 ```{r}
 # Create vector of variable names
@@ -222,31 +222,6 @@ print(combined_summary)
 ```
 
 
-
-```{r, fig.width=8, fig.height=10}
-# Bar plot with error bars with and legend titles
-combined_summary %>%
-  ggplot(aes(x = value, y = share, fill = dataset)) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.75)) +
-  geom_errorbar(aes(ymin = lower, ymax = upper, group = dataset),
-                width = 0.3,                    # Width of the horizontal lines at the ends of error bars
-                position = position_dodge(0.75), # Match the position_dodge width with geom_bar
-                color = "black",                 # Color of the error bars
-                size = 0.5) +                   # Size of the error bars, making them narrow
-  facet_wrap(~variable, scales = "free", ncol = 2, labeller = label_bquote(cols = .(variable))) +
-  labs(title = "Missingness Sociodemographics", 
-       x = "Value", 
-       y = "Share",
-       fill = "Dataset Type") +  # Custom legend title for the fill aesthetic
-  scale_x_discrete(na.translate = FALSE) +
-  coord_flip()
-
-```
-
-
-
-### Plot with only missing and confidence intervals
-
 ```{r, fig.width=8, fig.height=10}
 combined_summary_missing <- combined_summary %>% filter(dataset == "Missing")
 
@@ -277,9 +252,9 @@ combined_summary_missing %>%
        x = "Subgroup", 
        y = "Share of Missingness") +
   scale_x_discrete(na.translate = FALSE) +
-  scale_y_continuous(limits = c(0, 0.4)) + # Set uniform Y-axis limits
+  scale_y_continuous(limits = c(0, 0.38), labels = scales::percent) + # Set uniform Y-axis limits
   coord_flip() +
-  theme_minimal() +
+  theme_bw() +
   theme(title = element_text(face = "bold"),
     strip.text = element_text(face = "bold")  # Make facet titles bold
   )

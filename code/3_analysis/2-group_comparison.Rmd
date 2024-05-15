@@ -111,11 +111,12 @@ data_cluster %>%
   geom_bar(stat = "identity", position = position_dodge(width = 0.75)) +
   # Custom colors for each academic_status
   scale_fill_manual(values = c("academic" = "orange", "non-academic" = "skyblue")) +
-  labs(title = "Cluster Distribution by Group", 
+  labs(title = "Cluster Distribution by Academic Status", 
        x = "Cluster", 
        y = "Frequency",
        fill = "Academic Status") + # Legend Title for fill 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(labels = scales::percent)
 
 ggsave("3-2-cluster_distribution.png", path = here("figures"), height = 4, width = 4)
 ```
