@@ -30,7 +30,7 @@ library(GGally)
 library(ggpubr)
 library(rstatix)
 
-theme_set(theme_minimal())
+theme_set(theme_bw())
 
 data <- read_csv(here("data", "data_combined.csv"), 
                  col_types = cols(
@@ -43,9 +43,9 @@ data <- read_csv(here("data", "data_combined.csv"),
                    empathy_pc_cat = col_factor(levels = c("Less empathetic", "More empathetic")),
                    exp_hate_speech_cat = col_factor(levels = c("Less experience", "More experience")), 
                    exp_hostile_engagement_cat = col_factor(levels = c("Less experience", "More experience")), 
-                   cluster = col_factor(levels = c("Denying/Nonsense", "Intent-based", "Harms-based", "Harms-based narrow")),
+                   cluster = col_factor(levels = c("Intent-based", "Harms-based", "Harms-based narrow", "Denying/Nonsense")),
                    leftright_cat = col_factor(levels = c("liberal/left", "moderate/center", "conservative/right")),
-                   commitment_cat = col_factor(levels = c("Below average", "Above Average"))
+                   commitment_cat = col_factor(levels = c("Below average", "Above average"))
                  ))
 
 # filter out NA's in academic status and extreme outliers
@@ -56,15 +56,26 @@ indicators <- c("text_length_log2", "readability_score", "leftright_pred_error",
 
 ## Indicators by Academic Status
 
-```{r}
-p <- ggpairs(data,                 # Data frame
-        columns = indicators, # Columns
-        aes(color = academic_status,  # Color by group (cat. variable)
-            alpha = 0.5),
-        upper = list(continuous = wrap("cor", size = 2.7)
-        ))
+```{r, length = 15}
+# new try
+p <- ggpairs(data,  # Data frame
+             columns = indicators, # Columns
+             aes(alpha = 0.5),
+             upper = list(continuous = wrap("cor", size = 6),
+                          continuous = "smooth"),
+             diag = list(mapping = aes(color = academic_status)),
+             lower = list(
+              mapping = aes(color = academic_status),
+                          continuous = "smooth",
+                          combo = "facetdensity")
+ ) 
 
-p
+p + theme(
+  text = element_text(size = 16),
+  axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggsave("ggpairs.png", path = here("figures"), width = 8, height = 10)
 ```
 
 
@@ -99,7 +110,7 @@ data_cluster %>%
   ggplot(aes(x = reorder(cluster, order), y = share, fill = academic_status)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.75)) +
   # Custom colors for each academic_status
-  scale_fill_manual(values = c("academic" = "skyblue", "non-academic" = "darkgrey")) +
+  scale_fill_manual(values = c("academic" = "orange", "non-academic" = "skyblue")) +
   labs(title = "Cluster Distribution by Group", 
        x = "Cluster", 
        y = "Frequency",

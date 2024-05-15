@@ -48,7 +48,7 @@ data <- read_csv(here("data", "data_combined.csv"),
                    exp_hostile_engagement_cat = col_factor(levels = c("Less experience", "More experience")), 
                    cluster = col_factor(levels = c("Intent-based", "Harms-based", "Harms-based narrow", "Denying/Nonsense")),
                    leftright_cat = col_factor(levels = c("liberal/left", "moderate/center", "conservative/right")),
-                   commitment_cat = col_factor(levels = c("Below average", "Above Average"))
+                   commitment_cat = col_factor(levels = c("Below average", "Above average"))
                  ))
 
 # filter out NA's in academic status and extreme outliers

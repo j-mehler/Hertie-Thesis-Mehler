@@ -41,21 +41,38 @@ data <- read_csv(here("data", "data_combined.csv"),
                    exp_hostile_engagement_cat = col_factor(levels = c("Less experience", "More experience")), 
                    cluster = col_factor(levels = c("Denying/Nonsense", "Content-based", "Harms-based", "Harms-based narrow")),
                    leftright_cat = col_factor(levels = c("liberal/left", "moderate/center", "conservative/right")),
-                   commitment_cat = col_factor(levels = c("Below average", "Above Average"))
+                   commitment_cat = col_factor(levels = c("Below average", "Above average"))
                  ))
+
+data <- data %>% drop_na(academic_status, gender, age_cat, polinterest_cat_3, leftright_cat, empathy_pc_cat, exp_hate_speech_cat, exp_hostile_engagement_cat, commitment_cat)
 ```
-## Distribution of Variables of Interest
+
+## Distribution of Variables of Interest (categorical)
 
 ```{r}
 # Approach with table1 library
-table1(~ country + Q_Language + academic_status + gender + age_cat + polinterest_cat_3 + empathy_pc_cat + exp_hate_speech_cat + exp_hostile_engagement_cat + commitment_cat, data = data)
+
+# take out missing values in academic_status
+data_clean <- data %>% select(academic_status, country, gender, age_cat, polinterest_cat_3, leftright_cat, empathy_pc_cat, exp_hate_speech_cat, exp_hostile_engagement_cat, commitment_cat)
+
+table1(~ country + gender + age_cat + polinterest_cat_3 + leftright_cat + empathy_pc_cat + exp_hate_speech_cat + exp_hostile_engagement_cat + commitment_cat | academic_status, data = data_clean)
 ```
 
 ```{r}
 # approach with gtsummary
-data %>% 
-  select(country, Q_Language, academic_status, gender, age_cat, polinterest_cat_3, empathy_pc_cat, exp_hate_speech_cat, exp_hostile_engagement_cat, commitment_cat) %>% 
-  tbl_summary()
+#data %>% 
+#  select(country, Q_Language, academic_status, gender, age_cat, polinterest_cat_3, #empathy_pc_cat, exp_hate_speech_cat, exp_hostile_engagement_cat, commitment_cat) %>% 
+#  tbl_summary()
+```
+
+
+## Distribution of Variables of Interest (numeric)
+
+```{r}
+# select variables of interest (numerical)
+data_num <- data %>% select(age, polinterest, leftright, empathy_pc, exp_hate_speech, exp_hostile_engagement, commitment, commitment_log2,text_length, text_length_log2, readability_score, leftright_pred_error) 
+
+stargazer(data_num, digits = 1)
 ```
 
 

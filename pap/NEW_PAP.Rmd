@@ -30,7 +30,7 @@ Research by Heijden and Verkuyten [-@heijden2020] on educational attainment and 
 
 To empirically test these hypotheses, the study will analyze data from the “Global Preferences for Hate Speech Moderation” survey (Munzert et al., to be published), featuring responses from over 19,000 participants across eleven countries. The methodology involves creating different indicators from the open-text response in the survey on how people personally define hate speech, describing the content of individuals’ hate speech definitions (what do people regard as relevant) and the form (how do they express themselves).
 
-The analytical approach includes independent samples t-tests and chi-square-tests to evaluate differences in the definitions' properties between academics and non-academics, and several multinomial logistic regressions to examine the role of an academic background in shaping the personal hate speech definition. At the end, academic background will also be analyzed as a moderator of certain variable compositions. 
+The analytical approach includes independent samples t-tests and chi-square-tests to evaluate differences in the definitions' properties between academics and non-academics, and several multinomial logistic regressions to examine the role of an academic background in shaping the personal hate speech definition. At the end, academic background will also be analyzed as a moderator of certain variable compositions. The analysis will control for variables such as gender, age, political interest, and empathy to ensure a comprehensive understanding of the educational influence. Stratified analyses will break down the data across different national and ideological contexts.
 
 ---
 notes: erst einfache Vergleiche beider Gruppen (gegliedert in content und form) für 
@@ -42,7 +42,7 @@ notes: erst einfache Vergleiche beider Gruppen (gegliedert in content und form) 
 danach: Regressions mit meinen Controls, für alle bereits verglichenen Outcomes die sinnvoll erscheinen
 ---
 
-The analysis will control for variables such as gender, age, political interest, and empathy to ensure a comprehensive understanding of the educational influence. Stratified analyses will break down the data across different national and ideological contexts.
+
 
 # Motivation and background
 
