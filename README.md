@@ -18,4 +18,4 @@ Literature suggests higher education correlates with sophisticated yet ideologic
 
 
 ## Disclaimer
-I have relied on chatGPT to generate individual functions for plotting figures, restructuring data, or debugging. When I used code from chatGPT, it was adapted to our specific tasks, so that none of the code are completely the same as the chatGPT output.
+I have relied on chatGPT to generate individual functions for plotting figures, restructuring data, or debugging. When I used code from chatGPT, it was still adapted to my specific tasks.
